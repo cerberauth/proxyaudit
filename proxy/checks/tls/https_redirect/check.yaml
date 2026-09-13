@@ -1,0 +1,11 @@
+id: "tls.https_redirect"
+name: "Missing HTTP to HTTPS Redirect"
+description: "Tests whether a plain-HTTP request to the target is redirected to HTTPS."
+link: "https://owasp.org/www-project-secure-headers/#http-strict-transport-security-hsts"
+tags:
+  - tls
+  - transport
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 5.3
+cwe_id: "CWE-319"
+owasp: "API8:2023"

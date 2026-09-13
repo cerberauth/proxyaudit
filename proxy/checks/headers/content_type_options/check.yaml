@@ -1,0 +1,12 @@
+id: "headers.content_type_options"
+name: "X-Content-Type-Options Header Missing"
+description: "Tests for X-Content-Type-Options: nosniff, which stops browsers from MIME-sniffing responses away from the declared Content-Type."
+link: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options"
+tags:
+  - headers
+depends_on:
+  - "probe.http_fetch"
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 2.6
+cwe_id: "CWE-16"
+owasp: "API8:2023"

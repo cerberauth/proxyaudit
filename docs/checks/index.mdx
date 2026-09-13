@@ -1,0 +1,23 @@
+---
+title: Checks
+description: Every check proxyaudit runs, grouped by category, with its CWE/OWASP mapping and severity.
+---
+
+import { Card, CardGrid, LinkCard } from '@/components/docs';
+
+`proxyaudit scan` runs every check below against the target in a single pass. Each check is non-destructive and read-only (a single or a few requests, no brute-forcing or state mutation), and reports zero or more findings with a stable ID, CVSS score, CWE, and OWASP API Security Top 10 mapping.
+
+<CardGrid>
+  <LinkCard title="TLS / Transport" description="Protocol version, cipher strength, certificate, HTTPS redirect, HSTS." href="./tls/" />
+  <LinkCard title="HTTP Security Headers" description="CSP, frame options, content-type options, referrer/permissions policy, banner disclosure, cookies." href="./headers/" />
+  <LinkCard title="Client-IP & Header Trust Boundary" description="X-Forwarded-For, X-Real-IP, True-Client-IP, X-Forwarded-Host, Forwarded consistency." href="./headertrust/" />
+  <LinkCard title="Information Disclosure" description="Verbose errors, exposed admin interfaces, directory listing, config/secrets exposure." href="./disclosure/" />
+</CardGrid>
+
+## Severity
+
+Severity is derived from each check's [CVSS 4.0](https://www.first.org/cvss/v4-0/) score. A check with `cvss_score: 0` (e.g. a missing `Referrer-Policy` header) is reported at informational severity — worth fixing, but not itself exploitable.
+
+## `--aggressive`
+
+The `--aggressive` flag threads through to every check via `ScanContext.Aggressive`, for future, more intrusive checks. v0.1 has no Agg-tier checks, so it currently has no effect.

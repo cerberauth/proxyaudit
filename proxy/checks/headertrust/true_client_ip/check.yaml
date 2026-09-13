@@ -1,0 +1,10 @@
+id: "headertrust.true_client_ip"
+name: "True-Client-IP Value Reflected"
+description: "Sends a spoofed True-Client-IP value (Akamai-style single-hop header) and tests whether it is reflected back in the response."
+link: "https://techdocs.akamai.com/property-mgr/docs/custom-behaviors-true-client-ip"
+tags:
+  - headertrust
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 5.3
+cwe_id: "CWE-348"
+owasp: "API8:2023"

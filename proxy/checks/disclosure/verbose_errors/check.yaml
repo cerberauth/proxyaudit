@@ -1,0 +1,11 @@
+id: "disclosure.verbose_errors"
+name: "Verbose Error Page Leaks Internal Details"
+description: "Triggers error responses via a nonexistent path and a malformed Range header, and inspects the bodies for stack traces, backend file paths, or internal hostnames."
+link: "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/08-Testing_for_Error_Handling/01-Testing_For_Improper_Error_Handling"
+tags:
+  - disclosure
+depends_on: []
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:N/SC:L/SI:N/SA:N"
+cvss_score: 3.1
+cwe_id: "CWE-209"
+owasp: "API9:2023"

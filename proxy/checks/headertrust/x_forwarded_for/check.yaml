@@ -1,0 +1,10 @@
+id: "headertrust.x_forwarded_for"
+name: "X-Forwarded-For Value Reflected"
+description: "Sends a spoofed X-Forwarded-For value and tests whether it is reflected back in the response, indicating the proxy or origin trusts client-supplied client-IP headers."
+link: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For"
+tags:
+  - headertrust
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 5.3
+cwe_id: "CWE-348"
+owasp: "API8:2023"

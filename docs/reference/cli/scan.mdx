@@ -1,0 +1,60 @@
+---
+title: scan
+description: Scan a reverse proxy / API gateway for common misconfigurations.
+---
+
+import { Aside } from '@/components/docs';
+
+Runs every [check](../../checks/) against the target URL: TLS/transport, HTTP security headers, client-IP/header trust boundaries, and information disclosure via exposed management interfaces.
+
+<Aside type="caution">
+  Use only against systems you own or have explicit written permission to test.
+</Aside>
+
+## Usage
+
+```sh
+proxyaudit scan <url>
+```
+
+## Flags
+
+| Flag | Description |
+| --- | --- |
+| `--aggressive` | Enable Agg-tier checks. No effect in v0.1 — no Agg-tier checks exist yet — but wired through so later milestones don't require a CLI change. |
+| `--engine string` | Hint the fronting proxy engine: `nginx`, `traefik`, `envoy`, `caddy`, or `haproxy`. Optional, overrides auto-detection. |
+| `--format string` | Terminal display format (default `terminal`). |
+| `--no-color` | Disable ANSI colors in terminal output. |
+| `--output string` | File path to additionally write the report to. |
+| `--output-format string` | Format for `--output` (default `json`). |
+| `--quiet` | Suppress terminal display of the report. |
+| `--report-url string` | HTTP endpoint to POST the report to. |
+| `--report-header key=value` | Additional HTTP headers for the report transport (repeatable). |
+| `--report-format string` | Format for `--report-url` (default `json`). |
+| `--show-all-findings` | Show every finding on stdout, not just vulnerable ones. Other outputs (`--output`, `--report-url`) always include every finding. |
+
+Supported formats: `terminal`, `json`, `yaml`, `jsonl`, `sarif`, `markdown`, `html`.
+
+## Exit codes
+
+| Code | Meaning |
+| --- | --- |
+| `0` | No findings. |
+| `1` | Findings present. |
+| `2` | Runtime/connection error (target unreachable, TLS handshake failure, reporting error). |
+
+This makes `proxyaudit scan` safe to use directly as a CI gate — a non-zero exit fails the step.
+
+## Examples
+
+```sh
+proxyaudit scan https://proxy.example.com
+```
+
+```sh
+proxyaudit scan https://proxy.example.com --engine traefik --output report.json
+```
+
+```sh
+proxyaudit scan https://proxy.example.com --format json --quiet
+```

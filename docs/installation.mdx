@@ -1,0 +1,78 @@
+---
+title: Installation
+description: Install proxyaudit as a CLI tool.
+sidebar:
+  order: 2
+---
+
+import { Steps, Tabs, TabItem, Aside } from '@/components/docs';
+
+## CLI
+
+<Tabs>
+  <TabItem label="go install">
+
+```sh
+go install github.com/cerberauth/proxyaudit@latest
+```
+
+Requires Go 1.24 or later.
+
+  </TabItem>
+  <TabItem label="Homebrew">
+
+```sh
+brew install cerberauth/tap/proxyaudit
+```
+
+  </TabItem>
+  <TabItem label="Docker">
+
+```sh
+docker run --rm ghcr.io/cerberauth/proxyaudit scan https://proxy.example.com
+```
+
+See the [Docker guide](./docker/) for networking and CI usage.
+
+  </TabItem>
+  <TabItem label="From source">
+
+<Steps>
+
+1. Clone the repository:
+
+   ```sh
+   git clone https://github.com/cerberauth/proxyaudit.git
+   cd proxyaudit
+   ```
+
+2. Build the binary:
+
+   ```sh
+   go build -o proxyaudit .
+   ```
+
+3. Move it to your `PATH`:
+
+   ```sh
+   mv proxyaudit /usr/local/bin/
+   ```
+
+</Steps>
+
+  </TabItem>
+</Tabs>
+
+Verify the installation:
+
+```sh
+proxyaudit --version
+```
+
+## GitHub Actions
+
+To use `proxyaudit` in a GitHub Actions workflow, see the [GitHub Actions guide](./github-actions/).
+
+<Aside type="caution">
+  Only run `proxyaudit scan` against systems you own or have explicit written permission to test.
+</Aside>

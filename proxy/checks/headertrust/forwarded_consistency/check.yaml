@@ -1,0 +1,10 @@
+id: "headertrust.forwarded_consistency"
+name: "Forwarded Header Inconsistent With Legacy Headers"
+description: "Sends distinct spoofed values in the RFC 7239 Forwarded header and the legacy X-Forwarded-For header in the same request, and tests whether both are honored/reflected, indicating the proxy and origin disagree on which client-IP header is authoritative."
+link: "https://datatracker.ietf.org/doc/html/rfc7239"
+tags:
+  - headertrust
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 4.8
+cwe_id: "CWE-348"
+owasp: "API8:2023"

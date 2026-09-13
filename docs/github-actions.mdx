@@ -1,0 +1,77 @@
+---
+title: GitHub Actions
+description: Use proxyaudit in CI/CD pipelines to catch reverse proxy / API gateway misconfigurations before they reach production.
+sidebar:
+  order: 3
+---
+
+import { Card, CardGrid, Aside, Tabs, TabItem } from '@/components/docs';
+
+Run `proxyaudit` in your GitHub Actions workflows to catch reverse proxy / gateway misconfigurations before they reach production.
+
+## Install and run in a workflow step
+
+```yaml
+- name: Install proxyaudit
+  run: go install github.com/cerberauth/proxyaudit@latest
+
+- name: Scan proxy configuration
+  run: proxyaudit scan https://staging.example.com
+```
+
+Or use the Docker image to avoid needing Go:
+
+```yaml
+- name: Scan proxy configuration
+  run: docker run --rm ghcr.io/cerberauth/proxyaudit scan https://staging.example.com
+```
+
+### Example: scan on pull request
+
+```yaml
+name: Proxy security scan
+
+on:
+  pull_request:
+
+jobs:
+  proxy-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scan for proxy misconfigurations
+        run: docker run --rm ghcr.io/cerberauth/proxyaudit scan ${{ vars.STAGING_URL }}
+```
+
+`proxyaudit scan` already exits `1` when findings are present and `2` on a runtime/connection error, so no extra scripting is needed to fail the build — a non-zero exit fails the step automatically.
+
+<Aside type="caution">
+  Only run `proxyaudit scan` against systems you own or have explicit written permission to test. Store target URLs in [encrypted secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) or [variables](https://docs.github.com/en/actions/learn-github-actions/variables) rather than plain workflow files when they're not meant to be public.
+</Aside>
+
+---
+
+## Uploading the report
+
+Use `--output`/`--output-format` to also write a machine-readable report (JSON by default) alongside the terminal output, and upload it as a build artifact:
+
+```yaml
+- name: Scan proxy configuration
+  run: proxyaudit scan ${{ vars.STAGING_URL }} --output report.json
+
+- name: Upload report
+  if: always()
+  uses: actions/upload-artifact@v4
+  with:
+    name: proxyaudit-report
+    path: report.json
+```
+
+`--report-url` posts the report directly to an HTTP endpoint (e.g. a dashboard or ticketing webhook) instead of, or in addition to, a file:
+
+```yaml
+- name: Scan and report
+  run: |
+    proxyaudit scan ${{ vars.STAGING_URL }} \
+      --report-url ${{ secrets.REPORT_ENDPOINT }} \
+      --report-header "Authorization=Bearer ${{ secrets.REPORT_TOKEN }}"
+```

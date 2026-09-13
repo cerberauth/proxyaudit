@@ -1,0 +1,49 @@
+---
+title: Get Started
+description: Reverse proxy / API gateway security scanner — TLS, HTTP security headers, header trust boundaries, and exposed management interfaces, from the CLI or in GitHub Actions.
+template: splash
+hero:
+  tagline: Reverse proxy / API gateway security scanner for the CLI and GitHub Actions. Test TLS, HTTP security headers, client-IP trust boundaries, and exposed management interfaces.
+  actions:
+    - text: Get started
+      link: ./installation/
+      icon: right-arrow
+      variant: primary
+    - text: CLI reference
+      link: ./reference/cli/
+      icon: open-book
+sidebar:
+  order: 1
+---
+
+import { Card, CardGrid, LinkCard } from '@/components/docs';
+
+<CardGrid stagger>
+  <Card title="TLS/Transport" icon="lock">
+    Protocol version, cipher strength/forward secrecy, certificate chain/expiry/hostname, OCSP stapling, HTTPS redirect, and HSTS.
+  </Card>
+  <Card title="HTTP Security Headers" icon="document">
+    CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, banner disclosure, and cookie flags.
+  </Card>
+  <Card title="Header Trust Boundary" icon="random">
+    X-Forwarded-For, X-Real-IP, True-Client-IP, X-Forwarded-Host, and RFC 7239 Forwarded consistency.
+  </Card>
+  <Card title="Information Disclosure" icon="magnifier">
+    Verbose error pages, exposed proxy admin/status interfaces, directory listing, and config/secrets file exposure.
+  </Card>
+</CardGrid>
+
+## Quick start
+
+```sh
+proxyaudit scan https://proxy.example.com
+```
+
+Every check is non-destructive and read-only (single or few requests, no brute-forcing or state mutation). Exit codes are CI-friendly: `0` no findings, `1` findings present, `2` runtime/connection error.
+
+<CardGrid>
+  <LinkCard title="Installation" description="Install via go install, Homebrew, Docker, or from source." href="./installation/" />
+  <LinkCard title="Checks" description="Browse every check, its CWE/OWASP mapping, and severity." href="./checks/" />
+  <LinkCard title="CLI reference" description="Flags and usage for the scan command." href="./reference/cli/" />
+  <LinkCard title="GitHub Actions" description="Run proxyaudit in CI to catch misconfigurations before they ship." href="./github-actions/" />
+</CardGrid>

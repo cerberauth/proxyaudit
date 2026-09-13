@@ -1,0 +1,38 @@
+---
+title: Client-IP & Header Trust Boundary
+description: X-Forwarded-For, X-Real-IP, True-Client-IP, X-Forwarded-Host, and RFC 7239 Forwarded consistency.
+---
+
+import { Aside } from '@/components/docs';
+
+These checks send a distinctive, non-routable ([RFC 5737](https://www.rfc-editor.org/rfc/rfc5737) TEST-NET-3, or an `.invalid` hostname) marker value in a client-supplied header, and check whether it's reflected back in the response body or headers. Reflection is a black-box heuristic for "this header is trusted" — `proxyaudit` has no visibility into what actually reaches the origin behind the proxy.
+
+<Aside type="tip">
+  A response with no reflection at all doesn't prove the header is safely handled — it may just mean nothing in the response happens to echo request headers. Treat these checks as a signal to investigate, not a definitive pass/fail.
+</Aside>
+
+| Check ID | Title | CVSS 4.0 | CWE | OWASP |
+| --- | --- | --- | --- | --- |
+| `headertrust.x_forwarded_for` | X-Forwarded-For Value Reflected | 5.3 | [CWE-348](https://cwe.mitre.org/data/definitions/348.html) | API8:2023 |
+| `headertrust.x_real_ip` | X-Real-IP Value Reflected | 5.3 | [CWE-348](https://cwe.mitre.org/data/definitions/348.html) | API8:2023 |
+| `headertrust.true_client_ip` | True-Client-IP Value Reflected | 5.3 | [CWE-348](https://cwe.mitre.org/data/definitions/348.html) | API8:2023 |
+| `headertrust.x_forwarded_host` | X-Forwarded-Host Value Trusted | 5.3 | [CWE-350](https://cwe.mitre.org/data/definitions/350.html) | API8:2023 |
+| `headertrust.forwarded_consistency` | Forwarded Header Inconsistent With Legacy Headers | 4.8 | [CWE-348](https://cwe.mitre.org/data/definitions/348.html) | API8:2023 |
+
+## `headertrust.x_forwarded_for` / `headertrust.x_real_ip` / `headertrust.true_client_ip`
+
+Sends a spoofed value in the respective client-IP header and checks for reflection, tested independently since a proxy may honor one and not the others.
+
+**Remediate:** at the edge, overwrite (not append/trust) these headers with the actual peer address, or strip them from inbound requests before forwarding.
+
+## `headertrust.x_forwarded_host`
+
+Sends a spoofed `X-Forwarded-Host` and checks for reflection — e.g. in a redirect `Location` header or a canonical link, which would indicate a host-header-poisoning-style trust issue (password reset links, cache poisoning).
+
+**Remediate:** don't use client-supplied `X-Forwarded-Host` to build absolute URLs unless it's set (and can't be overridden) by the proxy itself.
+
+## `headertrust.forwarded_consistency`
+
+Sends distinct spoofed values in the RFC 7239 `Forwarded` header and the legacy `X-Forwarded-For` header in the same request, and checks whether both, one, or neither is reflected — inconsistent handling between the two formats means a request can pick whichever header favors it.
+
+**Remediate:** normalize to a single authoritative source (typically `Forwarded` per RFC 7239, or `X-Forwarded-For` if that's what the stack already relies on) and ignore the other.

@@ -1,0 +1,56 @@
+---
+title: HTTP Security Headers
+description: CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, banner disclosure, and cookie flags.
+---
+
+| Check ID | Title | CVSS 4.0 | CWE | OWASP |
+| --- | --- | --- | --- | --- |
+| `headers.csp` | Content-Security-Policy Header Missing | 2.6 | [CWE-1021](https://cwe.mitre.org/data/definitions/1021.html) | API8:2023 |
+| `headers.frame_options` | Clickjacking Protection Missing | 2.6 | [CWE-1021](https://cwe.mitre.org/data/definitions/1021.html) | API8:2023 |
+| `headers.content_type_options` | X-Content-Type-Options Header Missing | 2.6 | [CWE-16](https://cwe.mitre.org/data/definitions/16.html) | API8:2023 |
+| `headers.referrer_policy` | Referrer-Policy Header Missing | 0 (informational) | [CWE-200](https://cwe.mitre.org/data/definitions/200.html) | API8:2023 |
+| `headers.permissions_policy` | Permissions-Policy Header Missing | 0 (informational) | [CWE-1021](https://cwe.mitre.org/data/definitions/1021.html) | API8:2023 |
+| `headers.server_banner` | Server/X-Powered-By Banner Discloses Software or Version | 3.1 | [CWE-200](https://cwe.mitre.org/data/definitions/200.html) | API7:2023 |
+| `headers.cookie_flags` | Cookie Missing Secure, HttpOnly, or SameSite | 4.6 | [CWE-1004](https://cwe.mitre.org/data/definitions/1004.html) | API8:2023 |
+
+## `headers.csp`
+
+Tests for the presence of a `Content-Security-Policy` header.
+
+**Remediate:** add a `Content-Security-Policy` restricting script/style/resource sources to what the application actually needs.
+
+## `headers.frame_options`
+
+Tests for `X-Frame-Options` **or** a CSP `frame-ancestors` directive — either is sufficient.
+
+**Remediate:** set `X-Frame-Options: DENY` (or `SAMEORIGIN`), or `Content-Security-Policy: frame-ancestors 'none'` (or a specific origin).
+
+## `headers.content_type_options`
+
+Tests for `X-Content-Type-Options: nosniff`.
+
+**Remediate:** add `X-Content-Type-Options: nosniff` to every response.
+
+## `headers.referrer_policy`
+
+Tests for the presence of a `Referrer-Policy` header.
+
+**Remediate:** add `Referrer-Policy: strict-origin-when-cross-origin` (or stricter, e.g. `no-referrer`, depending on what the application needs to share).
+
+## `headers.permissions_policy`
+
+Tests for the presence of a `Permissions-Policy` header.
+
+**Remediate:** add a `Permissions-Policy` disabling powerful browser features the application doesn't use (camera, microphone, geolocation, ...).
+
+## `headers.server_banner`
+
+Checks the `Server` and `X-Powered-By` response headers for software (and, worse, version) disclosure.
+
+**Remediate:** strip or generalize the `Server` header at the proxy, and remove `X-Powered-By` entirely.
+
+## `headers.cookie_flags`
+
+Checks every `Set-Cookie` header in the response for the `Secure`, `HttpOnly`, and `SameSite` attributes.
+
+**Remediate:** set `Secure`, `HttpOnly` (unless the cookie must be JS-readable), and an explicit `SameSite` (`Strict` or `Lax`) on every cookie.

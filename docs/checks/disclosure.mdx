@@ -1,0 +1,35 @@
+---
+title: Information Disclosure & Exposed Management Interfaces
+description: Verbose error pages, exposed proxy admin/status interfaces, directory listing, and config/secrets file exposure.
+---
+
+| Check ID | Title | CVSS 4.0 | CWE | OWASP |
+| --- | --- | --- | --- | --- |
+| `disclosure.verbose_errors` | Verbose Error Page Leaks Internal Details | 3.1 | [CWE-209](https://cwe.mitre.org/data/definitions/209.html) | API9:2023 |
+| `disclosure.exposed_management` | Exposed Proxy Management or Admin Interface | 8.7 | [CWE-284](https://cwe.mitre.org/data/definitions/284.html) | API9:2023 |
+| `disclosure.directory_listing` | Directory Listing Enabled | 4.3 | [CWE-548](https://cwe.mitre.org/data/definitions/548.html) | API9:2023 |
+| `disclosure.config_exposure` | Config or Secrets File Exposed | 8.2 | [CWE-538](https://cwe.mitre.org/data/definitions/538.html) | API9:2023 |
+
+## `disclosure.verbose_errors`
+
+Triggers error responses via a nonexistent path and a request with a malformed `Range` header, and inspects the bodies for stack traces, backend file paths, or internal hostnames.
+
+**Remediate:** configure generic error pages for the proxy and every backend; never return stack traces or internal paths to clients.
+
+## `disclosure.exposed_management`
+
+Probes a fixed list of known reverse-proxy/gateway management paths — Traefik's `/api/rawdata` and `/dashboard/`, HAProxy's `/haproxy?stats`, Envoy's `/clusters`, `/config_dump`, and `/server_info`, nginx's `/nginx_status`, Apache's `/server-status` — and checks whether each responds successfully without authentication.
+
+**Remediate:** bind admin/status interfaces to a separate internal-only listener, or require authentication in front of them; never expose them on the public listener.
+
+## `disclosure.directory_listing`
+
+Probes common static-asset paths (`/`, `/static/`, `/assets/`, `/files/`, `/public/`, `/uploads/`) for autoindex-style directory listings.
+
+**Remediate:** disable directory autoindexing (`autoindex off;` on nginx, equivalent on other servers) for any static-file location.
+
+## `disclosure.config_exposure`
+
+Probes a fixed list of config-adjacent paths (`.env`, `nginx.conf`, `docker-compose.yml`, `.git/config`, `web.config`) for content that looks like configuration or secrets rather than the backend's ordinary not-found response.
+
+**Remediate:** ensure config files, `.env`, and `.git` are never served from a web root; deny access to dotfiles and known config filenames at the proxy.

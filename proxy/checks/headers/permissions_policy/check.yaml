@@ -1,0 +1,12 @@
+id: "headers.permissions_policy"
+name: "Permissions-Policy Header Missing"
+description: "Tests for the presence of a Permissions-Policy header."
+link: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy"
+tags:
+  - headers
+depends_on:
+  - "probe.http_fetch"
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 0
+cwe_id: "CWE-1021"
+owasp: "API8:2023"

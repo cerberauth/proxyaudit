@@ -1,0 +1,100 @@
+---
+title: Docker
+description: Run proxyaudit from a container — no local Go toolchain required.
+sidebar:
+  order: 5
+---
+
+import { Steps, Aside, Tabs, TabItem } from '@/components/docs';
+
+`proxyaudit` is published on Docker Hub and GHCR. The entrypoint is the `proxyaudit` binary itself, so any CLI command works after the image name.
+
+## Quick start
+
+```sh
+docker run --rm ghcr.io/cerberauth/proxyaudit scan https://proxy.example.com
+```
+
+```sh
+docker run --rm cerberauth/proxyaudit scan https://proxy.example.com
+```
+
+## Writing a report to a mounted volume
+
+`--output` needs the destination path to exist inside the container. Mount a host directory as a volume and reference the in-container path:
+
+```sh
+docker run --rm -v "$(pwd)":/data ghcr.io/cerberauth/proxyaudit \
+  scan https://proxy.example.com --output /data/report.json
+```
+
+## Scanning a proxy running in another container
+
+<Aside type="caution">
+  Only run `proxyaudit scan` against systems you own or have explicit written permission to test.
+</Aside>
+
+Join the target's network so `proxyaudit` can reach it by service name or `localhost`:
+
+```sh
+docker run --rm --network container:proxy ghcr.io/cerberauth/proxyaudit \
+  scan http://localhost:8080
+```
+
+## Docker Compose
+
+Run `proxyaudit` as a one-off step alongside the proxy under test:
+
+```yaml
+services:
+  proxy:
+    build: .
+    ports:
+      - '8080:8080'
+
+  proxyaudit:
+    image: ghcr.io/cerberauth/proxyaudit
+    depends_on:
+      - proxy
+    volumes:
+      - ./reports:/data
+    command: ['scan', 'http://proxy:8080', '--output', '/data/report.json']
+```
+
+```sh
+docker compose run --rm proxyaudit
+```
+
+## Build from source
+
+<Steps>
+
+1. Clone the repository:
+
+   ```sh
+   git clone https://github.com/cerberauth/proxyaudit.git
+   cd proxyaudit
+   ```
+
+2. Build the image using the dev Dockerfile:
+
+   ```sh
+   docker build -f .docker/Dockerfile-build -t proxyaudit .
+   ```
+
+3. Run it:
+
+   ```sh
+   docker run --rm proxyaudit scan https://proxy.example.com
+   ```
+
+</Steps>
+
+## GitHub Actions
+
+To run `proxyaudit` in CI without pulling the image manually, see the [GitHub Actions guide](./github-actions/). To use the container image directly in a workflow step:
+
+```yaml
+- name: Scan proxy configuration
+  run: docker run --rm ghcr.io/cerberauth/proxyaudit scan ${{ vars.STAGING_URL }}
+```

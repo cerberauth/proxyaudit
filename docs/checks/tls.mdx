@@ -1,0 +1,46 @@
+---
+title: TLS / Transport
+description: Protocol version, cipher strength/forward secrecy, certificate chain/expiry/hostname, OCSP stapling, HTTPS redirect, and HSTS.
+---
+
+| Check ID | Title | CVSS 4.0 | CWE | OWASP |
+| --- | --- | --- | --- | --- |
+| `tls.protocol_version` | Weak TLS Protocol Version Accepted | 5.3 | [CWE-326](https://cwe.mitre.org/data/definitions/326.html) | API8:2023 |
+| `tls.cipher_strength` | Weak Cipher Suite or Missing Forward Secrecy | 4.8 | [CWE-327](https://cwe.mitre.org/data/definitions/327.html) | API8:2023 |
+| `tls.certificate` | Certificate Chain, Expiry, Hostname, or OCSP Stapling Issue | 5.3 | [CWE-295](https://cwe.mitre.org/data/definitions/295.html) | API8:2023 |
+| `tls.https_redirect` | Missing HTTP to HTTPS Redirect | 5.3 | [CWE-319](https://cwe.mitre.org/data/definitions/319.html) | API8:2023 |
+| `tls.hsts` | Missing or Weak Strict-Transport-Security Header | 0 (informational) | [CWE-16](https://cwe.mitre.org/data/definitions/16.html) | API8:2023 |
+
+## `tls.protocol_version`
+
+Tests whether the proxy still accepts deprecated TLS versions (TLS 1.0/1.1) alongside modern ones, by forcing a handshake at each deprecated version. Go's `crypto/tls` no longer implements SSLv3, so that version can't be probed directly — but a server still offering it would also offer TLS 1.0/1.1 in virtually every real deployment.
+
+**Remediate:** disable TLS 1.0/1.1 (and SSLv3) in the proxy's TLS configuration; require TLS 1.2 or later.
+
+## `tls.cipher_strength`
+
+Inspects the negotiated cipher suite for missing forward secrecy (non-ECDHE/DHE key exchange on TLS ≤ 1.2), and separately forces a handshake offering only known-weak cipher suites (RC4, 3DES, CBC-mode) to test whether the server still accepts them.
+
+**Remediate:** restrict the cipher suite list to modern AEAD suites with ECDHE key exchange (or rely on TLS 1.3, which is always forward-secret).
+
+## `tls.certificate`
+
+Inspects the leaf certificate presented during the TLS handshake:
+
+- **Chain trust** — independently verifies the presented chain against the system trust store and the request hostname.
+- **Expiry** — flags an expired certificate, and separately flags one expiring within 30 days.
+- **OCSP stapling** — flags a handshake with no stapled OCSP response.
+
+**Remediate:** use a certificate from a trusted CA matching the hostname, automate renewal well before expiry, and enable OCSP stapling.
+
+## `tls.https_redirect`
+
+Sends a plain-HTTP request to the target and checks whether it's redirected to HTTPS.
+
+**Remediate:** redirect all plain-HTTP traffic to HTTPS (301/308) at the proxy.
+
+## `tls.hsts`
+
+Checks for a `Strict-Transport-Security` response header with a `max-age` of at least 180 days, `includeSubDomains`, and `preload`.
+
+**Remediate:** add `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload` to responses (start without `preload` until you've confirmed every subdomain is HTTPS-only).

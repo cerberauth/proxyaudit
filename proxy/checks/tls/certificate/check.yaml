@@ -1,0 +1,14 @@
+id: "tls.certificate"
+name: "Certificate Chain, Expiry, Hostname, or OCSP Stapling Issue"
+description: "Inspects the leaf certificate presented during the TLS handshake for chain trust, expiry window, hostname match, and OCSP stapling."
+link: "https://developer.mozilla.org/en-US/docs/Web/Security/Transport_Layer_Security"
+tags:
+  - tls
+  - transport
+  - certificate
+depends_on:
+  - "probe.tls_info"
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 5.3
+cwe_id: "CWE-295"
+owasp: "API8:2023"

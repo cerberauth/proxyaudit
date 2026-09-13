@@ -1,0 +1,17 @@
+---
+title: CLI Reference
+description: Overview of the proxyaudit command-line interface.
+---
+
+`proxyaudit` has a single subcommand, `scan`, plus the standard `--version`/`--help` and `--sqa-opt-out` flags on the root command.
+
+## Global flags
+
+| Flag | Description |
+| --- | --- |
+| `--sqa-opt-out` | Opt out of sending anonymous usage statistics and crash reports to help improve the tool. |
+| `-v, --version` | Print the version and exit. |
+
+## Commands
+
+- [`scan`](./scan/) — scan a reverse proxy / API gateway for common misconfigurations.

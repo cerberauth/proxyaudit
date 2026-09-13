@@ -1,0 +1,12 @@
+id: "headers.frame_options"
+name: "Clickjacking Protection Missing"
+description: "Tests for X-Frame-Options or a CSP frame-ancestors directive that would prevent the response from being framed."
+link: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options"
+tags:
+  - headers
+depends_on:
+  - "probe.http_fetch"
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 2.6
+cwe_id: "CWE-1021"
+owasp: "API8:2023"

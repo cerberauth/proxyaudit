@@ -1,0 +1,11 @@
+id: "disclosure.exposed_management"
+name: "Exposed Proxy Management or Admin Interface"
+description: "Probes a fixed list of known reverse-proxy/gateway management paths (Traefik dashboard/API, HAProxy stats, Envoy admin) to test whether they are reachable without authentication."
+link: "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/06-Enumerate_Infrastructure_and_Application_Admin_Interfaces"
+tags:
+  - disclosure
+depends_on: []
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 8.7
+cwe_id: "CWE-284"
+owasp: "API9:2023"
