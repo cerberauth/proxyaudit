@@ -1,0 +1,123 @@
+name: Scans
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  GO_VERSION: "1.26"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build:
+    name: Build proxyaudit
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Build
+        run: go build -o proxyaudit .
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v7
+        with:
+          name: proxyaudit
+          path: proxyaudit
+          retention-days: 1
+
+  run-scans:
+    name: Scan - ${{ matrix.challenge }} (${{ matrix.vulnerable && 'vulnerable' || 'not vulnerable' }})
+    runs-on: ubuntu-latest
+    needs: build
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - challenge: "proxy-security-headers"
+            vulnerable: true
+            scheme: "http"
+            relevant_pattern: "clickjacking|X-Content-Type-Options|Permissions-Policy|Referrer-Policy|Server header discloses|X-Powered-By header discloses"
+          - challenge: "proxy-security-headers"
+            vulnerable: false
+            scheme: "http"
+            relevant_pattern: "clickjacking|X-Content-Type-Options|Permissions-Policy|Referrer-Policy|Server header discloses|X-Powered-By header discloses"
+          - challenge: "proxy-info-disclosure"
+            vulnerable: true
+            scheme: "http"
+            relevant_pattern: "Directory listing"
+          - challenge: "proxy-info-disclosure"
+            vulnerable: false
+            scheme: "http"
+            relevant_pattern: "Directory listing"
+          - challenge: "proxy-tls-misconfiguration"
+            vulnerable: true
+            scheme: "https"
+            relevant_pattern: "Weak cipher"
+          - challenge: "proxy-tls-misconfiguration"
+            vulnerable: false
+            scheme: "https"
+            relevant_pattern: "Weak cipher"
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Server
+        run: docker run -d -p 8080:8080 ghcr.io/cerberauth/api-vulns-challenges/${{ matrix.challenge }}:latest serve --vulnerable=${{ matrix.vulnerable }}
+
+      - name: Download binary
+        uses: actions/download-artifact@v8
+        with:
+          name: proxyaudit
+
+      - name: Prepare binary
+        run: chmod +x proxyaudit
+
+      - name: proxyaudit scan
+        continue-on-error: true
+        run: |
+          ./proxyaudit scan ${{ matrix.scheme }}://localhost:8080 --format json | tee scan-report.json
+
+      - name: Check scan result
+        run: |
+          relevant=$(jq --arg pattern '${{ matrix.relevant_pattern }}' '[.findings[] | select(.id | test($pattern))] | length' scan-report.json)
+
+          if [ "${{ matrix.vulnerable }}" = "true" ]; then
+            if [ "$relevant" -eq 0 ]; then
+              echo "::error::No findings for ${{ matrix.challenge }} in vulnerable mode"
+              exit 1
+            fi
+            echo "Findings found for ${{ matrix.challenge }} (vulnerable mode, as expected)"
+          else
+            if [ "$relevant" -gt 0 ]; then
+              echo "::error::Findings unexpectedly present for ${{ matrix.challenge }} in fixed (non-vulnerable) mode"
+              jq '.findings[] | .id' scan-report.json
+              exit 1
+            fi
+            echo "No findings for ${{ matrix.challenge }} (fixed mode, as expected)"
+          fi
+
+      - name: Stop Server
+        if: ${{ always() }}
+        run: docker stop $(docker ps -q --filter ancestor=ghcr.io/cerberauth/api-vulns-challenges/${{ matrix.challenge }}:latest)
