@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	aclbypass "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/acl_bypass"
 	forwardedconsistency "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/forwarded_consistency"
 	trueclientip "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/true_client_ip"
 	xforwardedfor "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_forwarded_for"
@@ -99,6 +100,35 @@ func TestForwardedConsistency_BothTrusted_Flagged(t *testing.T) {
 	obs := runEngine(t, srv, forwardedconsistency.Check)
 	require.NotEmpty(t, obs)
 	assert.Contains(t, obs[0].Title, "Both Forwarded and X-Forwarded-For are trusted")
+}
+
+func TestACLBypass_SpoofedLoopback_Flagged(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/internal/admin" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		if r.Header.Get("X-Forwarded-For") != "127.0.0.1" {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	obs := runEngine(t, srv, aclbypass.Check)
+	require.NotEmpty(t, obs)
+	assert.Contains(t, obs[0].Title, "IP-based access control bypassed")
+}
+
+func TestACLBypass_NoDifference_NoFindings(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer srv.Close()
+
+	obs := runEngine(t, srv, aclbypass.Check)
+	assert.Empty(t, obs)
 }
 
 func TestForwardedConsistency_OnlyLegacyTrusted_Flagged(t *testing.T) {

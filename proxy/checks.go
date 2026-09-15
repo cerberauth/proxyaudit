@@ -21,6 +21,7 @@ import (
 	permissionspolicy "github.com/cerberauth/proxyaudit/proxy/checks/headers/permissions_policy"
 	referrerpolicy "github.com/cerberauth/proxyaudit/proxy/checks/headers/referrer_policy"
 	serverbanner "github.com/cerberauth/proxyaudit/proxy/checks/headers/server_banner"
+	aclbypass "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/acl_bypass"
 	forwardedconsistency "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/forwarded_consistency"
 	trueclientip "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/true_client_ip"
 	xforwardedfor "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_forwarded_for"
@@ -67,6 +68,7 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		trueclientip.Check,
 		xforwardedhost.Check,
 		forwardedconsistency.Check,
+		aclbypass.Check,
 
 		// Information Disclosure & Exposed Management Interfaces.
 		exposedmanagement.Check,
@@ -95,6 +97,7 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		trueclientip.Check.ID:         trueclientip.Def,
 		xforwardedhost.Check.ID:       xforwardedhost.Def,
 		forwardedconsistency.Check.ID: forwardedconsistency.Def,
+		aclbypass.Check.ID:            aclbypass.Def,
 
 		exposedmanagement.Check.ID: exposedmanagement.Def,
 		directorylisting.Check.ID:  directorylisting.Def,

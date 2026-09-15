@@ -96,8 +96,9 @@ for the full list with CWE/OWASP mapping and remediation.
   X-Content-Type-Options, Referrer-Policy, Permissions-Policy, Server/
   X-Powered-By banner disclosure, cookie flags.
 - **Client-IP & Header Trust Boundary**: X-Forwarded-For, X-Real-IP,
-  True-Client-IP, X-Forwarded-Host reflection, and RFC 7239 `Forwarded` vs.
-  legacy header consistency.
+  True-Client-IP, X-Forwarded-Host reflection, RFC 7239 `Forwarded` vs.
+  legacy header consistency, and IP-based access control bypass via a
+  spoofed client-IP header.
 - **Information Disclosure & Exposed Management Interfaces**: verbose error
   pages, exposed proxy admin/status interfaces (Traefik, HAProxy, Envoy,
   nginx, Apache), directory listing, config/secrets file exposure.

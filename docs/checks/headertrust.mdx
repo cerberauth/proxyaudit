@@ -18,6 +18,7 @@ These checks send a distinctive, non-routable ([RFC 5737](https://www.rfc-editor
 | `headertrust.true_client_ip` | True-Client-IP Value Reflected | 5.3 | [CWE-348](https://cwe.mitre.org/data/definitions/348.html) | API8:2023 |
 | `headertrust.x_forwarded_host` | X-Forwarded-Host Value Trusted | 5.3 | [CWE-350](https://cwe.mitre.org/data/definitions/350.html) | API8:2023 |
 | `headertrust.forwarded_consistency` | Forwarded Header Inconsistent With Legacy Headers | 4.8 | [CWE-348](https://cwe.mitre.org/data/definitions/348.html) | API8:2023 |
+| `headertrust.acl_bypass` | IP-Based Access Control Bypassed via Spoofed Client-IP Header | 8.7 | [CWE-290](https://cwe.mitre.org/data/definitions/290.html) | API5:2023 |
 
 ## `headertrust.x_forwarded_for` / `headertrust.x_real_ip` / `headertrust.true_client_ip`
 
@@ -36,3 +37,9 @@ Sends a spoofed `X-Forwarded-Host` and checks for reflection — e.g. in a redir
 Sends distinct spoofed values in the RFC 7239 `Forwarded` header and the legacy `X-Forwarded-For` header in the same request, and checks whether both, one, or neither is reflected — inconsistent handling between the two formats means a request can pick whichever header favors it.
 
 **Remediate:** normalize to a single authoritative source (typically `Forwarded` per RFC 7239, or `X-Forwarded-For` if that's what the stack already relies on) and ignore the other.
+
+## `headertrust.acl_bypass`
+
+Unlike the reflection-based checks above, this one probes a fixed list of common internal/admin paths and compares the response with and without a spoofed loopback `X-Forwarded-For`/`X-Real-IP` header — a direct test of whether an IP-based access control (or a downstream rate limit keyed on the same header) can be bypassed, rather than just a signal that the header is trusted somewhere.
+
+**Remediate:** enforce IP-based access controls and rate limits on the actual TCP peer address, not a client-supplied header; if a trusted proxy legitimately needs to forward the original client IP, overwrite (don't append/trust) the header at the edge.
