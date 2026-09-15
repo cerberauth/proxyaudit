@@ -22,6 +22,15 @@ type PathResult struct {
 // ProbePath sends one GET to path resolved against baseURL (query and
 // fragment stripped).
 func ProbePath(ctx context.Context, sctx *scanctx.ScanContext, baseURL, path string) (*PathResult, error) {
+	return ProbePathWithHeaders(ctx, sctx, baseURL, path, nil)
+}
+
+// ProbePathWithHeaders sends one GET to path resolved against baseURL
+// (query and fragment stripped) with every entry in headers set. Used by
+// checks that need to compare a path's behavior with and without a
+// client-supplied header (e.g. an ACL bypassed via a spoofed client-IP
+// header).
+func ProbePathWithHeaders(ctx context.Context, sctx *scanctx.ScanContext, baseURL, path string, headers map[string]string) (*PathResult, error) {
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, err
@@ -33,6 +42,9 @@ func ProbePath(ctx context.Context, sctx *scanctx.ScanContext, baseURL, path str
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {
 		return nil, err
+	}
+	for name, value := range headers {
+		req.Header.Set(name, value)
 	}
 
 	fetched, err := do(sctx.HTTPClient, req)

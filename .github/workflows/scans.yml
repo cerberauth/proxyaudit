@@ -72,6 +72,14 @@ jobs:
             vulnerable: false
             scheme: "https"
             relevant_pattern: "Weak cipher"
+          - challenge: "proxy-client-ip-spoofing"
+            vulnerable: true
+            scheme: "http"
+            relevant_pattern: "IP-based access control bypassed"
+          - challenge: "proxy-client-ip-spoofing"
+            vulnerable: false
+            scheme: "http"
+            relevant_pattern: "IP-based access control bypassed"
 
     steps:
       - uses: actions/checkout@v7

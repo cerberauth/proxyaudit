@@ -1,0 +1,10 @@
+id: "headertrust.acl_bypass"
+name: "IP-Based Access Control Bypassed via Spoofed Client-IP Header"
+description: "Probes a fixed list of common internal/admin paths and compares the response with and without a spoofed loopback client-IP header (X-Forwarded-For / X-Real-IP), testing whether an IP-based access control can be bypassed by a client-supplied header."
+link: "https://owasp.org/API-Security/editions/2023/en/0xa5-broken-function-level-authorization/"
+tags:
+  - headertrust
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 8.7
+cwe_id: "CWE-290"
+owasp: "API5:2023"
