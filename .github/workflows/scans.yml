@@ -80,6 +80,14 @@ jobs:
             vulnerable: false
             scheme: "http"
             relevant_pattern: "IP-based access control bypassed"
+          - challenge: "proxy-host-header-injection"
+            vulnerable: true
+            scheme: "http"
+            relevant_pattern: "Host header value trusted|Virtual-host confusion"
+          - challenge: "proxy-host-header-injection"
+            vulnerable: false
+            scheme: "http"
+            relevant_pattern: "Host header value trusted|Virtual-host confusion"
 
     steps:
       - uses: actions/checkout@v7

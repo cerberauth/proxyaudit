@@ -23,7 +23,9 @@ import (
 	serverbanner "github.com/cerberauth/proxyaudit/proxy/checks/headers/server_banner"
 	aclbypass "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/acl_bypass"
 	forwardedconsistency "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/forwarded_consistency"
+	hostheaderinjection "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/host_header_injection"
 	trueclientip "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/true_client_ip"
+	vhostconfusion "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/vhost_confusion"
 	xforwardedfor "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_forwarded_for"
 	xforwardedhost "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_forwarded_host"
 	xrealip "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_real_ip"
@@ -67,6 +69,8 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		xrealip.Check,
 		trueclientip.Check,
 		xforwardedhost.Check,
+		hostheaderinjection.Check,
+		vhostconfusion.Check,
 		forwardedconsistency.Check,
 		aclbypass.Check,
 
@@ -96,6 +100,8 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		xrealip.Check.ID:              xrealip.Def,
 		trueclientip.Check.ID:         trueclientip.Def,
 		xforwardedhost.Check.ID:       xforwardedhost.Def,
+		hostheaderinjection.Check.ID:  hostheaderinjection.Def,
+		vhostconfusion.Check.ID:       vhostconfusion.Def,
 		forwardedconsistency.Check.ID: forwardedconsistency.Def,
 		aclbypass.Check.ID:            aclbypass.Def,
 

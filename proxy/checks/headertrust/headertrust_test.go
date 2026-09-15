@@ -16,7 +16,9 @@ import (
 
 	aclbypass "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/acl_bypass"
 	forwardedconsistency "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/forwarded_consistency"
+	hostheaderinjection "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/host_header_injection"
 	trueclientip "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/true_client_ip"
+	vhostconfusion "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/vhost_confusion"
 	xforwardedfor "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_forwarded_for"
 	xforwardedhost "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_forwarded_host"
 	xrealip "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_real_ip"
@@ -128,6 +130,57 @@ func TestACLBypass_NoDifference_NoFindings(t *testing.T) {
 	defer srv.Close()
 
 	obs := runEngine(t, srv, aclbypass.Check)
+	assert.Empty(t, obs)
+}
+
+func TestHostHeaderInjection_ReflectedInBody_Flagged(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/password-reset" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		fmt.Fprintf(w, `{"resetLink": "https://%s/reset?token=abc123"}`, r.Host) //nolint:gosec // deliberate reflection fixture for the trust-boundary check under test
+	}))
+	defer srv.Close()
+
+	obs := runEngine(t, srv, hostheaderinjection.Check)
+	require.NotEmpty(t, obs)
+	assert.Contains(t, obs[0].Title, "Host header value trusted")
+}
+
+func TestHostHeaderInjection_NotReflected_NoFindings(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte("ok"))
+	}))
+	defer srv.Close()
+
+	obs := runEngine(t, srv, hostheaderinjection.Check)
+	assert.Empty(t, obs)
+}
+
+func TestVHostConfusion_DifferentBodyForCraftedHost_Flagged(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Host == "internal-admin.local" {
+			_, _ = w.Write([]byte(`{"message": "internal admin backend"}`))
+			return
+		}
+		_, _ = w.Write([]byte(`{"message": "public backend"}`))
+	}))
+	defer srv.Close()
+
+	obs := runEngine(t, srv, vhostconfusion.Check)
+	require.NotEmpty(t, obs)
+	assert.Contains(t, obs[0].Title, "Virtual-host confusion")
+	assert.Equal(t, "internal-admin.local", obs[0].Metadata["host"])
+}
+
+func TestVHostConfusion_SameBodyForEveryHost_NoFindings(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(`{"message": "public backend"}`))
+	}))
+	defer srv.Close()
+
+	obs := runEngine(t, srv, vhostconfusion.Check)
 	assert.Empty(t, obs)
 }
 
