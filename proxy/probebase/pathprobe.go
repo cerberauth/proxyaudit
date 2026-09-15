@@ -31,15 +31,12 @@ func ProbePath(ctx context.Context, sctx *scanctx.ScanContext, baseURL, path str
 // client-supplied header (e.g. an ACL bypassed via a spoofed client-IP
 // header).
 func ProbePathWithHeaders(ctx context.Context, sctx *scanctx.ScanContext, baseURL, path string, headers map[string]string) (*PathResult, error) {
-	u, err := url.Parse(baseURL)
+	resolved, err := ResolvePath(baseURL, path)
 	if err != nil {
 		return nil, err
 	}
-	u.Path = path
-	u.RawQuery = ""
-	u.Fragment = ""
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, resolved, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -58,4 +55,17 @@ func ProbePathWithHeaders(ctx context.Context, sctx *scanctx.ScanContext, baseUR
 		Body:       fetched.Body,
 		Err:        fetched.Err,
 	}, nil
+}
+
+// ResolvePath replaces baseURL's path with path, stripping any query and
+// fragment, and returns the resulting URL as a string.
+func ResolvePath(baseURL, path string) (string, error) {
+	u, err := url.Parse(baseURL)
+	if err != nil {
+		return "", err
+	}
+	u.Path = path
+	u.RawQuery = ""
+	u.Fragment = ""
+	return u.String(), nil
 }

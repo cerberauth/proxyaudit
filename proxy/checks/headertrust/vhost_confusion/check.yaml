@@ -1,0 +1,10 @@
+id: "headertrust.vhost_confusion"
+name: "Virtual-Host Confusion via Crafted Host Header"
+description: "Sends a set of common internal/admin Host header values and compares the response with the request's own host, testing whether a crafted Host header routes to an unintended backend (virtual-host confusion)."
+link: "https://portswigger.net/web-security/host-header"
+tags:
+  - headertrust
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 6.5
+cwe_id: "CWE-441"
+owasp: "API8:2023"

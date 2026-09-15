@@ -84,6 +84,44 @@ func ProbeWithHeaders(ctx context.Context, sctx *scanctx.ScanContext, url string
 	return result, nil
 }
 
+// ProbeWithHost sends one GET to url with the request's Host header
+// overridden to host — which req.Header.Set cannot do, since net/http
+// sends the Host line from Request.Host rather than the header map — and
+// reports whether marker appears in the response body or in any response
+// header. Used by checks/headertrust/host_header_injection to test
+// whether the origin trusts the client-supplied Host header directly
+// (as opposed to X-Forwarded-Host, covered by ProbeWithHeader).
+func ProbeWithHost(ctx context.Context, sctx *scanctx.ScanContext, url, host, marker string) (*ReflectionResult, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Host = host
+
+	// Reflection is judged on the immediate response, not wherever a
+	// redirect might lead (e.g. a spoofed Host reflected into a Location
+	// header would otherwise send this probe off-target).
+	client := &http.Client{
+		Transport: sctx.HTTPClient.Transport,
+		Timeout:   sctx.HTTPClient.Timeout,
+		CheckRedirect: func(*http.Request, []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	fetched, err := do(client, req)
+	if err != nil {
+		return nil, err
+	}
+	if fetched.Err != nil {
+		return &ReflectionResult{Err: fetched.Err}, nil
+	}
+
+	result := &ReflectionResult{StatusCode: fetched.StatusCode, Header: fetched.Header, Body: fetched.Body}
+	result.ReflectedInBody, result.ReflectedHeader = FindMarker(fetched.Header, fetched.Body, marker)
+	return result, nil
+}
+
 // FindMarker reports whether marker appears in body or in any header value,
 // returning the header name it was found in (if any). Exposed for checks
 // that send more than one marker in a single request (via

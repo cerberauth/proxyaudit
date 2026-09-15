@@ -1,6 +1,6 @@
 ---
 title: Client-IP & Header Trust Boundary
-description: X-Forwarded-For, X-Real-IP, True-Client-IP, X-Forwarded-Host, and RFC 7239 Forwarded consistency.
+description: X-Forwarded-For, X-Real-IP, True-Client-IP, X-Forwarded-Host, Host header injection, virtual-host confusion, and RFC 7239 Forwarded consistency.
 ---
 
 import { Aside } from '@/components/docs';
@@ -17,6 +17,8 @@ These checks send a distinctive, non-routable ([RFC 5737](https://www.rfc-editor
 | `headertrust.x_real_ip` | X-Real-IP Value Reflected | 5.3 | [CWE-348](https://cwe.mitre.org/data/definitions/348.html) | API8:2023 |
 | `headertrust.true_client_ip` | True-Client-IP Value Reflected | 5.3 | [CWE-348](https://cwe.mitre.org/data/definitions/348.html) | API8:2023 |
 | `headertrust.x_forwarded_host` | X-Forwarded-Host Value Trusted | 5.3 | [CWE-350](https://cwe.mitre.org/data/definitions/350.html) | API8:2023 |
+| `headertrust.host_header_injection` | Host Header Value Trusted | 5.3 | [CWE-350](https://cwe.mitre.org/data/definitions/350.html) | API8:2023 |
+| `headertrust.vhost_confusion` | Virtual-Host Confusion via Crafted Host Header | 6.5 | [CWE-441](https://cwe.mitre.org/data/definitions/441.html) | API8:2023 |
 | `headertrust.forwarded_consistency` | Forwarded Header Inconsistent With Legacy Headers | 4.8 | [CWE-348](https://cwe.mitre.org/data/definitions/348.html) | API8:2023 |
 | `headertrust.acl_bypass` | IP-Based Access Control Bypassed via Spoofed Client-IP Header | 8.7 | [CWE-290](https://cwe.mitre.org/data/definitions/290.html) | API5:2023 |
 
@@ -31,6 +33,18 @@ Sends a spoofed value in the respective client-IP header and checks for reflecti
 Sends a spoofed `X-Forwarded-Host` and checks for reflection — e.g. in a redirect `Location` header or a canonical link, which would indicate a host-header-poisoning-style trust issue (password reset links, cache poisoning).
 
 **Remediate:** don't use client-supplied `X-Forwarded-Host` to build absolute URLs unless it's set (and can't be overridden) by the proxy itself.
+
+## `headertrust.host_header_injection`
+
+Sends a spoofed `Host` header — the request line itself, not `X-Forwarded-Host` — and checks for reflection, e.g. in a generated password-reset link, redirect `Location` header, or canonical link. This catches origins that build absolute URLs straight from `Host` without going through a proxy-supplied `X-Forwarded-Host` at all.
+
+**Remediate:** build absolute URLs from a configured canonical hostname, never from the inbound `Host` header.
+
+## `headertrust.vhost_confusion`
+
+Unlike the reflection-based checks above, this one sends a fixed list of common internal/admin hostnames (e.g. `internal-admin.local`) as the `Host` header and compares the response body against a baseline request made with the target's own host — a direct test of whether the client-supplied `Host` header can route the request to a different (potentially internal) backend, rather than just a signal that the header is trusted somewhere.
+
+**Remediate:** route on the SNI/listener the connection was actually received on (or an explicit virtual-host allowlist), not the client-supplied `Host` header.
 
 ## `headertrust.forwarded_consistency`
 
