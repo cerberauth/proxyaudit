@@ -10,6 +10,8 @@ import (
 	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/harnessx/checkdef"
 
+	methodbypass "github.com/cerberauth/proxyaudit/proxy/checks/accesscontrol/method_bypass"
+	pathbypass "github.com/cerberauth/proxyaudit/proxy/checks/accesscontrol/path_bypass"
 	configexposure "github.com/cerberauth/proxyaudit/proxy/checks/disclosure/config_exposure"
 	directorylisting "github.com/cerberauth/proxyaudit/proxy/checks/disclosure/directory_listing"
 	exposedmanagement "github.com/cerberauth/proxyaudit/proxy/checks/disclosure/exposed_management"
@@ -81,6 +83,10 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		directorylisting.Check,
 		configexposure.Check,
 		verboseerrors.Check,
+
+		// Path & Access Control Bypass.
+		pathbypass.Check,
+		methodbypass.Check,
 	}
 
 	defs := map[harnessx.CheckID]checkdef.CheckDef{
@@ -112,6 +118,9 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		directorylisting.Check.ID:  directorylisting.Def,
 		configexposure.Check.ID:    configexposure.Def,
 		verboseerrors.Check.ID:     verboseerrors.Def,
+
+		pathbypass.Check.ID:   pathbypass.Def,
+		methodbypass.Check.ID: methodbypass.Def,
 	}
 
 	return checks, defs

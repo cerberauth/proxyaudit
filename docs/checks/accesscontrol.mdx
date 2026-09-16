@@ -1,0 +1,21 @@
+---
+title: Path & Access Control Bypass
+description: Access control bypassed via path normalization (case variation, duplicate/trailing slash, encoded traversal, double-encoding, null byte, matrix parameter) or via an unexpected HTTP method.
+---
+
+| Check ID | Title | CVSS 4.0 | CWE | OWASP |
+| --- | --- | --- | --- | --- |
+| `accesscontrol.path_bypass` | Access Control Bypassed via Path Normalization | 8.7 | [CWE-284](https://cwe.mitre.org/data/definitions/284.html) | API5:2023 |
+| `accesscontrol.method_bypass` | Access Control Bypassed via HTTP Method | 8.7 | [CWE-650](https://cwe.mitre.org/data/definitions/650.html) | API5:2023 |
+
+## `accesscontrol.path_bypass`
+
+Probes a fixed list of common protected paths (`/admin`, `/internal`, `/private`). For any that deny a plain `GET`, it retries case/encoding/traversal variants of the same path — uppercase, a duplicate leading slash, a trailing slash or dot segment, a partially percent-encoded traversal back to itself, a double-encoded first byte, a trailing null byte, and a matrix (`;`) parameter — that a backend commonly normalizes away before routing. A variant that succeeds where the plain path was denied means the access control is matching on the raw, unnormalized path instead of the path the backend will actually resolve.
+
+**Remediate:** decode and canonicalize the path (case-fold, resolve `.`/`..` segments, collapse duplicate slashes, strip matrix parameters) using the same logic the backend router uses, before making the access-control decision — ideally by enforcing the check at the same layer that does the routing, rather than in front of it.
+
+## `accesscontrol.method_bypass`
+
+Probes the same fixed list of common protected paths and, for any that deny a `GET`, retries the identical path with `HEAD`, `POST`, `PUT`, `PATCH`, `DELETE`, and `OPTIONS`. A verb that succeeds where `GET` was denied means the access control only gates the verb it expects instead of every verb the backend routes to that handler.
+
+**Remediate:** apply the access-control check independent of the HTTP method, or deny by default and explicitly allow only the methods a path is meant to support.
