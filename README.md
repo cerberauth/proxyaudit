@@ -108,7 +108,9 @@ for the full list with CWE/OWASP mapping and remediation.
 - **Path & Access Control Bypass**: access control bypassed via path
   normalization (case variation, duplicate/trailing slash, encoded
   traversal, double-encoding, null byte, matrix parameter) or via an
-  unexpected HTTP method reaching the same protected path.
+  unexpected HTTP method reaching the same protected path; nginx
+  off-by-slash alias traversal (a `location` without a trailing slash
+  paired with an `alias` directive).
 
 ## Documentation
 
