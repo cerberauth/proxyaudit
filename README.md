@@ -105,6 +105,10 @@ for the full list with CWE/OWASP mapping and remediation.
 - **Information Disclosure & Exposed Management Interfaces**: verbose error
   pages, exposed proxy admin/status interfaces (Traefik, HAProxy, Envoy,
   nginx, Apache), directory listing, config/secrets file exposure.
+- **Path & Access Control Bypass**: access control bypassed via path
+  normalization (case variation, duplicate/trailing slash, encoded
+  traversal, double-encoding, null byte, matrix parameter) or via an
+  unexpected HTTP method reaching the same protected path.
 
 ## Documentation
 

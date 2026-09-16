@@ -1,0 +1,10 @@
+id: "accesscontrol.method_bypass"
+name: "Access Control Bypassed via HTTP Method"
+description: "Probes a fixed list of common protected paths and, for any that deny a GET, retries the identical path with a different HTTP verb, testing whether the access control only gates the verb it expects rather than every verb the backend will route to the same handler."
+link: "https://owasp.org/API-Security/editions/2023/en/0xa5-broken-function-level-authorization/"
+tags:
+  - accesscontrol
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 8.7
+cwe_id: "CWE-650"
+owasp: "API5:2023"

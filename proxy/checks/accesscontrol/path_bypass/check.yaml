@@ -1,0 +1,10 @@
+id: "accesscontrol.path_bypass"
+name: "Access Control Bypassed via Path Normalization"
+description: "Probes a fixed list of common protected paths and, for any that deny access, retries case/encoding/traversal variants of the same path that a backend commonly normalizes away, testing whether a naive prefix-based access control can be bypassed by a differently-formatted request."
+link: "https://owasp.org/API-Security/editions/2023/en/0xa5-broken-function-level-authorization/"
+tags:
+  - accesscontrol
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 8.7
+cwe_id: "CWE-284"
+owasp: "API5:2023"

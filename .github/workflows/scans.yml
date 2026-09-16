@@ -96,6 +96,14 @@ jobs:
             vulnerable: false
             scheme: "http"
             relevant_pattern: "Reflected Origin combined with credentialed CORS response|CORS accepts the null origin|CORS preflight allows credentialed requests from an arbitrary origin"
+          - challenge: "proxy-path-bypass"
+            vulnerable: true
+            scheme: "http"
+            relevant_pattern: "Access control bypassed via path normalization|Access control bypassed via HTTP method"
+          - challenge: "proxy-path-bypass"
+            vulnerable: false
+            scheme: "http"
+            relevant_pattern: "Access control bypassed via path normalization|Access control bypassed via HTTP method"
 
     steps:
       - uses: actions/checkout@v7
