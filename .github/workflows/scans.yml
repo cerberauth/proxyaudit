@@ -153,3 +153,62 @@ jobs:
       - name: Stop Server
         if: ${{ always() }}
         run: docker stop $(docker ps -q --filter ancestor=ghcr.io/cerberauth/api-vulns-challenges/${{ matrix.challenge }}:latest)
+
+  run-nginx-scans:
+    name: Scan - nginx-alias-traversal (${{ matrix.vulnerable && 'vulnerable' || 'not vulnerable' }})
+    runs-on: ubuntu-latest
+    needs: build
+
+    strategy:
+      fail-fast: false
+      matrix:
+        vulnerable: [true, false]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Server
+        run: docker run -d -p 8080:8080 -e VULNERABLE=${{ matrix.vulnerable }} ghcr.io/cerberauth/api-vulns-challenges/nginx-alias-traversal:latest
+
+      - name: Download binary
+        uses: actions/download-artifact@v8
+        with:
+          name: proxyaudit
+
+      - name: Prepare binary
+        run: chmod +x proxyaudit
+
+      - name: proxyaudit scan
+        continue-on-error: true
+        run: |
+          ./proxyaudit scan http://localhost:8080 --format json | tee scan-report.json
+
+      - name: Check scan result
+        run: |
+          relevant=$(jq '[.findings[] | select(.id | test("Nginx off-by-slash alias traversal"))] | length' scan-report.json)
+
+          if [ "${{ matrix.vulnerable }}" = "true" ]; then
+            if [ "$relevant" -eq 0 ]; then
+              echo "::error::No findings for nginx-alias-traversal in vulnerable mode"
+              exit 1
+            fi
+            echo "Findings found for nginx-alias-traversal (vulnerable mode, as expected)"
+          else
+            if [ "$relevant" -gt 0 ]; then
+              echo "::error::Findings unexpectedly present for nginx-alias-traversal in fixed (non-vulnerable) mode"
+              jq '.findings[] | .id' scan-report.json
+              exit 1
+            fi
+            echo "No findings for nginx-alias-traversal (fixed mode, as expected)"
+          fi
+
+      - name: Stop Server
+        if: ${{ always() }}
+        run: docker stop $(docker ps -q --filter ancestor=ghcr.io/cerberauth/api-vulns-challenges/nginx-alias-traversal:latest)

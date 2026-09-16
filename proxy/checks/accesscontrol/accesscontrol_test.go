@@ -16,7 +16,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	methodbypass "github.com/cerberauth/proxyaudit/proxy/checks/accesscontrol/method_bypass"
+	nginxaliastraversal "github.com/cerberauth/proxyaudit/proxy/checks/accesscontrol/nginx_alias_traversal"
 	pathbypass "github.com/cerberauth/proxyaudit/proxy/checks/accesscontrol/path_bypass"
+	"github.com/cerberauth/proxyaudit/proxy/probebase"
 	"github.com/cerberauth/proxyaudit/proxy/scanctx"
 )
 
@@ -103,5 +105,57 @@ func TestAccessControl_AlwaysDenied_NoFindings(t *testing.T) {
 	defer srv.Close()
 
 	obs := runEngine(t, srv, pathbypass.Check, methodbypass.Check)
+	assert.Empty(t, obs)
+}
+
+// nginxAliasHandler mimics the nginx-alias-traversal challenge: a "location
+// /files" (no trailing slash) paired with an "alias" directive serves
+// /files/index.html normally, but — in vulnerable mode — also serves the
+// exact same content for /filesindex.html, since nginx would strip only
+// the literal "/files" prefix and append "index.html" straight onto the
+// alias, without requiring a "/" separator.
+func nginxAliasHandler(vulnerable bool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Server", "nginx/1.18.0")
+		if r.URL.Path == "/files/index.html" || (vulnerable && r.URL.Path == "/filesindex.html") {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("public index"))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}
+}
+
+func TestNginxAliasTraversal_OffBySlashLocation_Flagged(t *testing.T) {
+	srv := httptest.NewServer(nginxAliasHandler(true))
+	defer srv.Close()
+
+	obs := runEngine(t, srv, probebase.HTTPFetchCheck, nginxaliastraversal.Check)
+	require.NotEmpty(t, obs)
+	assert.Contains(t, obs[0].Title, "Nginx off-by-slash alias traversal")
+	assert.Equal(t, "/files", obs[0].Metadata["prefix"])
+}
+
+func TestNginxAliasTraversal_TrailingSlashLocation_NoFindings(t *testing.T) {
+	srv := httptest.NewServer(nginxAliasHandler(false))
+	defer srv.Close()
+
+	obs := runEngine(t, srv, probebase.HTTPFetchCheck, nginxaliastraversal.Check)
+	assert.Empty(t, obs)
+}
+
+func TestNginxAliasTraversal_NonNginxServer_Skipped(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Server", "Apache/2.4.41")
+		if r.URL.Path == "/files/index.html" || r.URL.Path == "/filesindex.html" {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("public index"))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer srv.Close()
+
+	obs := runEngine(t, srv, probebase.HTTPFetchCheck, nginxaliastraversal.Check)
 	assert.Empty(t, obs)
 }

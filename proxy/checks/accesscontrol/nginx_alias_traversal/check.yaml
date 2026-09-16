@@ -1,0 +1,13 @@
+id: "accesscontrol.nginx_alias_traversal"
+name: "Nginx Off-by-Slash Alias Traversal"
+description: "For nginx-fingerprinted targets, probes common alias-style location prefixes (e.g. /files, /static) for the classic off-by-slash misconfiguration: a location without a trailing slash combined with an alias directive lets the prefix match without requiring a '/' separator, so a request can escape the aliased directory."
+link: "https://github.com/yandex/gixy/blob/master/docs/en/plugins/aliastraversal.md"
+tags:
+  - accesscontrol
+  - disclosure
+depends_on:
+  - "probe.http_fetch"
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 8.7
+cwe_id: "CWE-22"
+owasp: "API8:2023"

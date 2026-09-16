@@ -1,12 +1,13 @@
 ---
 title: Path & Access Control Bypass
-description: Access control bypassed via path normalization (case variation, duplicate/trailing slash, encoded traversal, double-encoding, null byte, matrix parameter) or via an unexpected HTTP method.
+description: Access control bypassed via path normalization (case variation, duplicate/trailing slash, encoded traversal, double-encoding, null byte, matrix parameter), via an unexpected HTTP method, or via an nginx off-by-slash alias misconfiguration.
 ---
 
 | Check ID | Title | CVSS 4.0 | CWE | OWASP |
 | --- | --- | --- | --- | --- |
 | `accesscontrol.path_bypass` | Access Control Bypassed via Path Normalization | 8.7 | [CWE-284](https://cwe.mitre.org/data/definitions/284.html) | API5:2023 |
 | `accesscontrol.method_bypass` | Access Control Bypassed via HTTP Method | 8.7 | [CWE-650](https://cwe.mitre.org/data/definitions/650.html) | API5:2023 |
+| `accesscontrol.nginx_alias_traversal` | Nginx Off-by-Slash Alias Traversal | 8.7 | [CWE-22](https://cwe.mitre.org/data/definitions/22.html) | API8:2023 |
 
 ## `accesscontrol.path_bypass`
 
@@ -19,3 +20,9 @@ Probes a fixed list of common protected paths (`/admin`, `/internal`, `/private`
 Probes the same fixed list of common protected paths and, for any that deny a `GET`, retries the identical path with `HEAD`, `POST`, `PUT`, `PATCH`, `DELETE`, and `OPTIONS`. A verb that succeeds where `GET` was denied means the access control only gates the verb it expects instead of every verb the backend routes to that handler.
 
 **Remediate:** apply the access-control check independent of the HTTP method, or deny by default and explicitly allow only the methods a path is meant to support.
+
+## `accesscontrol.nginx_alias_traversal`
+
+Skipped for targets that don't fingerprint as nginx via the `Server` header. For a fixed list of common alias-style location prefixes (`/files`, `/static`, `/assets`, `/media`, `/public`, `/uploads`, `/download`), fetches `<prefix>/index.html` and, if that returns `200`, also fetches `<prefix>index.html` — the same filename appended directly onto the prefix with no `/` separator. Identical content on both means the `location` matching that prefix has no trailing slash, so nginx strips only the literal prefix and appends the remainder of the request path verbatim to the `alias` directory — from there, an attacker can substitute a `../` traversal for the filename to escape the aliased directory entirely (the classic [Gixy `alias_traversal`](https://github.com/yandex/gixy/blob/master/docs/en/plugins/aliastraversal.md) finding).
+
+**Remediate:** add a trailing slash to the `location` (e.g. `location /files/ { alias ...; }`), or use `root` instead of `alias` when the location and filesystem paths are meant to line up.
