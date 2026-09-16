@@ -1,0 +1,10 @@
+id: "headers.cors"
+name: "CORS Misconfiguration"
+description: "Sends cross-origin requests with a spoofed Origin (including the literal \"null\" origin) and an OPTIONS preflight, checking whether the response reflects an arbitrary or wildcard origin combined with Access-Control-Allow-Credentials: true, accepts the null origin, or caches an overly permissive preflight for too long."
+link: "https://portswigger.net/web-security/cors"
+tags:
+  - headers
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 6.7
+cwe_id: "CWE-942"
+owasp: "API8:2023"
