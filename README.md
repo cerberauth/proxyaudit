@@ -94,7 +94,9 @@ for the full list with CWE/OWASP mapping and remediation.
   certificate chain/expiry/hostname/OCSP stapling, HTTP→HTTPS redirect, HSTS.
 - **HTTP Security Headers**: CSP, X-Frame-Options/frame-ancestors,
   X-Content-Type-Options, Referrer-Policy, Permissions-Policy, Server/
-  X-Powered-By banner disclosure, cookie flags.
+  X-Powered-By banner disclosure, cookie flags, CORS misconfiguration
+  (reflected/wildcard origin with credentials, null-origin acceptance,
+  preflight correctness/cache duration).
 - **Client-IP & Header Trust Boundary**: X-Forwarded-For, X-Real-IP,
   True-Client-IP, X-Forwarded-Host reflection, Host header injection,
   virtual-host confusion via a crafted Host header, RFC 7239 `Forwarded` vs.

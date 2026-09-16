@@ -15,6 +15,7 @@ import (
 
 	contenttypeoptions "github.com/cerberauth/proxyaudit/proxy/checks/headers/content_type_options"
 	cookieflags "github.com/cerberauth/proxyaudit/proxy/checks/headers/cookie_flags"
+	"github.com/cerberauth/proxyaudit/proxy/checks/headers/cors"
 	"github.com/cerberauth/proxyaudit/proxy/checks/headers/csp"
 	frameoptions "github.com/cerberauth/proxyaudit/proxy/checks/headers/frame_options"
 	permissionspolicy "github.com/cerberauth/proxyaudit/proxy/checks/headers/permissions_policy"
@@ -23,6 +24,8 @@ import (
 	"github.com/cerberauth/proxyaudit/proxy/probebase"
 	"github.com/cerberauth/proxyaudit/proxy/scanctx"
 )
+
+const corsTestPath = "/api/account"
 
 func runEngine(t *testing.T, srv *httptest.Server, checks ...harnessx.Check) []harnessx.Observation {
 	t.Helper()
@@ -90,5 +93,101 @@ func TestFrameOptions_CSPFrameAncestors_NoFindings(t *testing.T) {
 	defer srv.Close()
 
 	obs := runEngine(t, srv, frameoptions.Check)
+	assert.Empty(t, obs)
+}
+
+func TestCORS_ReflectedOriginWithCredentials_Flagged(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != corsTestPath {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		if origin := r.Header.Get("Origin"); origin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+		}
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	obs := runEngine(t, srv, cors.Check)
+	require.NotEmpty(t, obs)
+
+	var titles []string
+	for _, o := range obs {
+		titles = append(titles, o.Title)
+	}
+	assert.Contains(t, titles, "Reflected Origin combined with credentialed CORS response: /api/account")
+	assert.Contains(t, titles, "CORS accepts the null origin: /api/account")
+	assert.Contains(t, titles, "CORS preflight allows credentialed requests from an arbitrary origin: /api/account")
+}
+
+func TestCORS_WildcardOriginWithCredentials_Flagged(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != corsTestPath {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	obs := runEngine(t, srv, cors.Check)
+	require.NotEmpty(t, obs)
+	assert.Contains(t, obs[0].Title, "Wildcard Access-Control-Allow-Origin combined with Access-Control-Allow-Credentials")
+}
+
+func TestCORS_ExcessivePreflightCache_Flagged(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != corsTestPath {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		if r.Method == http.MethodOptions {
+			w.Header().Set("Access-Control-Max-Age", "86400")
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	obs := runEngine(t, srv, cors.Check)
+	require.NotEmpty(t, obs)
+
+	var titles []string
+	for _, o := range obs {
+		titles = append(titles, o.Title)
+	}
+	assert.Contains(t, titles, "CORS preflight cache duration exceeds browser ceiling: /api/account")
+}
+
+func TestCORS_ScopedToTrustedOrigin_NoFindings(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != corsTestPath {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		if r.Header.Get("Origin") == "https://app.example.com" {
+			w.Header().Set("Access-Control-Allow-Origin", "https://app.example.com")
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Vary", "Origin")
+		}
+		if r.Method == http.MethodOptions {
+			w.Header().Set("Access-Control-Max-Age", "600")
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	obs := runEngine(t, srv, cors.Check)
 	assert.Empty(t, obs)
 }

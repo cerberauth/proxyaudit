@@ -88,6 +88,14 @@ jobs:
             vulnerable: false
             scheme: "http"
             relevant_pattern: "Host header value trusted|Virtual-host confusion"
+          - challenge: "proxy-cors-misconfiguration"
+            vulnerable: true
+            scheme: "http"
+            relevant_pattern: "Reflected Origin combined with credentialed CORS response|CORS accepts the null origin|CORS preflight allows credentialed requests from an arbitrary origin"
+          - challenge: "proxy-cors-misconfiguration"
+            vulnerable: false
+            scheme: "http"
+            relevant_pattern: "Reflected Origin combined with credentialed CORS response|CORS accepts the null origin|CORS preflight allows credentialed requests from an arbitrary origin"
 
     steps:
       - uses: actions/checkout@v7

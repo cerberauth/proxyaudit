@@ -1,6 +1,6 @@
 ---
 title: HTTP Security Headers
-description: CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, banner disclosure, and cookie flags.
+description: CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, banner disclosure, cookie flags, and CORS.
 ---
 
 | Check ID | Title | CVSS 4.0 | CWE | OWASP |
@@ -12,6 +12,7 @@ description: CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Perm
 | `headers.permissions_policy` | Permissions-Policy Header Missing | 0 (informational) | [CWE-1021](https://cwe.mitre.org/data/definitions/1021.html) | API8:2023 |
 | `headers.server_banner` | Server/X-Powered-By Banner Discloses Software or Version | 3.1 | [CWE-200](https://cwe.mitre.org/data/definitions/200.html) | API7:2023 |
 | `headers.cookie_flags` | Cookie Missing Secure, HttpOnly, or SameSite | 4.6 | [CWE-1004](https://cwe.mitre.org/data/definitions/1004.html) | API8:2023 |
+| `headers.cors` | CORS Misconfiguration | 6.7 | [CWE-942](https://cwe.mitre.org/data/definitions/942.html) | API8:2023 |
 
 ## `headers.csp`
 
@@ -54,3 +55,9 @@ Checks the `Server` and `X-Powered-By` response headers for software (and, worse
 Checks every `Set-Cookie` header in the response for the `Secure`, `HttpOnly`, and `SameSite` attributes.
 
 **Remediate:** set `Secure`, `HttpOnly` (unless the cookie must be JS-readable), and an explicit `SameSite` (`Strict` or `Lax`) on every cookie.
+
+## `headers.cors`
+
+Sends cross-origin requests to a fixed list of common API/account paths with a spoofed `Origin` (an attacker-controlled marker origin, and the literal `null` origin) plus an `OPTIONS` preflight, and inspects the `Access-Control-*` response headers directly rather than via reflection. Flags: an arbitrary `Origin` reflected back in `Access-Control-Allow-Origin` combined with `Access-Control-Allow-Credentials: true`; a wildcard `Access-Control-Allow-Origin: *` combined with `Access-Control-Allow-Credentials: true`; the literal `null` origin accepted; a preflight that grants credentialed access to an arbitrary origin; and an `Access-Control-Max-Age` beyond what any major browser actually caches a preflight for (2h).
+
+**Remediate:** validate `Origin` against an explicit allowlist (never reflect it verbatim), never combine a wildcard origin with `Access-Control-Allow-Credentials: true`, never treat `null` as a valid origin, and set `Access-Control-Max-Age` to a short, deliberately chosen value.

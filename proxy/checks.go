@@ -16,6 +16,7 @@ import (
 	verboseerrors "github.com/cerberauth/proxyaudit/proxy/checks/disclosure/verbose_errors"
 	contenttypeoptions "github.com/cerberauth/proxyaudit/proxy/checks/headers/content_type_options"
 	cookieflags "github.com/cerberauth/proxyaudit/proxy/checks/headers/cookie_flags"
+	"github.com/cerberauth/proxyaudit/proxy/checks/headers/cors"
 	"github.com/cerberauth/proxyaudit/proxy/checks/headers/csp"
 	frameoptions "github.com/cerberauth/proxyaudit/proxy/checks/headers/frame_options"
 	permissionspolicy "github.com/cerberauth/proxyaudit/proxy/checks/headers/permissions_policy"
@@ -63,6 +64,7 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		permissionspolicy.Check,
 		serverbanner.Check,
 		cookieflags.Check,
+		cors.Check,
 
 		// Client-IP & Header Trust Boundary.
 		xforwardedfor.Check,
@@ -95,6 +97,7 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		permissionspolicy.Check.ID:  permissionspolicy.Def,
 		serverbanner.Check.ID:       serverbanner.Def,
 		cookieflags.Check.ID:        cookieflags.Def,
+		cors.Check.ID:               cors.Def,
 
 		xforwardedfor.Check.ID:        xforwardedfor.Def,
 		xrealip.Check.ID:              xrealip.Def,

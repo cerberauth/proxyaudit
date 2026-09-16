@@ -127,7 +127,7 @@ release:
 
 homebrew_casks:
   - name: proxyaudit
-    description: &description "Reverse proxy / API gateway security scanner — TLS, HTTP security headers, header trust boundaries, and exposed management interfaces."
+    description: &description "Reverse proxy / API gateway security scanner."
     license: &license MIT
     homepage: &homepage https://github.com/cerberauth/proxyaudit
     repository:
@@ -171,7 +171,7 @@ snapcrafts:
     title: proxyaudit
     publish: true
     summary: *description
-    description: "proxyaudit dynamically tests whether a reverse proxy or API gateway is securely configured: TLS/transport, HTTP security headers, client-IP/header trust boundaries, and information disclosure via exposed management interfaces."
+    description: "Tests whether a reverse proxy or API gateway is securely configured."
     license: *license
     confinement: strict
     grade: stable
