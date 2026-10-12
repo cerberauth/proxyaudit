@@ -1,0 +1,13 @@
+id: "caching.authenticated_caching"
+name: "Authenticated Response Marked Cacheable"
+description: "Sends a request carrying credentials (bearer token and cookie) and checks whether the response is cacheable per RFC 9111 without carrying one of the §3.5 opt-in directives (must-revalidate, public, s-maxage) — a shared cache/CDN in front of the origin may store and serve the authenticated response to other users. Severity is compounded when the response body or Set-Cookie header carries PII, tokens, or session data."
+link: "https://httpwg.org/specs/rfc9111.html#rfc.section.3.5"
+tags:
+  - caching
+  - rfc9111
+depends_on:
+  - "probe.http_fetch"
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 8.7
+cwe_id: "CWE-524"
+owasp: "API1:2023"

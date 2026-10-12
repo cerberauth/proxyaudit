@@ -1,8 +1,9 @@
 module github.com/cerberauth/proxyaudit
 
-go 1.26.0
+go 1.27.0
 
 require (
+	github.com/cerberauth/cache-detective v0.0.0-20260917215736-01100a70209b
 	github.com/cerberauth/harnessx v0.4.0
 	github.com/cerberauth/x v0.0.0-20260901215913-9d7750841dbb
 	github.com/spf13/cobra v1.10.2

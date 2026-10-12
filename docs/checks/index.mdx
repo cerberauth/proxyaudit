@@ -13,6 +13,7 @@ import { Card, CardGrid, LinkCard } from '@/components/docs';
   <LinkCard title="Client-IP & Header Trust Boundary" description="X-Forwarded-For, X-Real-IP, True-Client-IP, X-Forwarded-Host, Host header injection, virtual-host confusion, Forwarded consistency." href="./headertrust/" />
   <LinkCard title="Information Disclosure" description="Verbose errors, exposed admin interfaces, directory listing, config/secrets exposure." href="./disclosure/" />
   <LinkCard title="Path & Access Control Bypass" description="Access control bypassed via path normalization, HTTP method, or nginx off-by-slash alias traversal." href="./accesscontrol/" />
+  <LinkCard title="Caching Behavior & Web Cache Deception" description="Authenticated-response caching, cache-key/Vary consistency, unkeyed-header cache poisoning, web cache deception." href="./caching/" />
 </CardGrid>
 
 ## Severity
@@ -21,4 +22,4 @@ Severity is derived from each check's [CVSS 4.0](https://www.first.org/cvss/v4-0
 
 ## `--aggressive`
 
-The `--aggressive` flag threads through to every check via `ScanContext.Aggressive`, for future, more intrusive checks. v0.1 has no Agg-tier checks, so it currently has no effect.
+The `--aggressive` flag threads through to every check via `ScanContext.Aggressive`. Most checks are read-only and run regardless; the `caching.cache_poisoning` and `caching.cache_deception` checks are Agg-tier and skip unless `--aggressive` is set, since a positive result means the check actually planted content in a shared cache other users may be served.
