@@ -1,0 +1,13 @@
+id: "caching.cache_deception"
+name: "Web Cache Deception via Path Confusion"
+description: "Appends a static-file extension or a nonexistent sub-path to the resource path and checks whether the origin response is served identically and looks cacheable under that path — a path-confusion web cache deception surface if the original response carries authenticated/sensitive content. Requires --aggressive since a positive result plants content in a shared cache."
+link: "https://portswigger.net/web-security/web-cache-deception"
+tags:
+  - caching
+  - cache-deception
+depends_on:
+  - "probe.http_fetch"
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 8.1
+cwe_id: "CWE-524"
+owasp: "API1:2023"

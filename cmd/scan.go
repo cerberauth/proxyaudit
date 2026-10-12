@@ -39,9 +39,10 @@ func NewScanCmd() *cobra.Command {
 HTTP security headers, client-IP/header trust boundaries, and information
 disclosure via exposed management interfaces.
 
---aggressive threads harnessx.ScanContext.Aggressive through to checks, but
-has no effect yet since v0.1 has no Agg-tier checks — it's wired through so
-later milestones don't require a CLI change.
+--aggressive threads harnessx.ScanContext.Aggressive through to checks that
+opt into it — currently the two caching checks that plant content in a
+shared cache (caching.cache_poisoning, caching.cache_deception) — and skips
+them by default.
 
 Use only against systems you own or have explicit written permission to test.`,
 		Args: cobra.ExactArgs(1),
@@ -119,7 +120,7 @@ Use only against systems you own or have explicit written permission to test.`,
 		},
 	}
 
-	scanCmd.Flags().BoolVar(&aggressive, "aggressive", false, "Enable Agg-tier checks (no effect in v0.1 — no Agg-tier checks exist yet)")
+	scanCmd.Flags().BoolVar(&aggressive, "aggressive", false, "Enable Agg-tier checks that plant content in a shared cache (cache poisoning, cache deception)")
 	scanCmd.Flags().StringVar(&engineFlag, "engine", "", "Hint the fronting proxy engine: nginx, traefik, envoy, caddy, or haproxy (optional, overrides auto-detection)")
 	cobrareportx.RegisterFormatFlags(scanCmd)
 	cobrareportx.RegisterTransportFlags(scanCmd)

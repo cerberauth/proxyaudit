@@ -13,6 +13,10 @@ import (
 	methodbypass "github.com/cerberauth/proxyaudit/proxy/checks/accesscontrol/method_bypass"
 	nginxaliastraversal "github.com/cerberauth/proxyaudit/proxy/checks/accesscontrol/nginx_alias_traversal"
 	pathbypass "github.com/cerberauth/proxyaudit/proxy/checks/accesscontrol/path_bypass"
+	authenticatedcaching "github.com/cerberauth/proxyaudit/proxy/checks/caching/authenticated_caching"
+	cachedeception "github.com/cerberauth/proxyaudit/proxy/checks/caching/cache_deception"
+	cachepoisoning "github.com/cerberauth/proxyaudit/proxy/checks/caching/cache_poisoning"
+	varyconsistency "github.com/cerberauth/proxyaudit/proxy/checks/caching/vary_consistency"
 	configexposure "github.com/cerberauth/proxyaudit/proxy/checks/disclosure/config_exposure"
 	directorylisting "github.com/cerberauth/proxyaudit/proxy/checks/disclosure/directory_listing"
 	exposedmanagement "github.com/cerberauth/proxyaudit/proxy/checks/disclosure/exposed_management"
@@ -89,6 +93,12 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		pathbypass.Check,
 		methodbypass.Check,
 		nginxaliastraversal.Check,
+
+		// Caching Behavior & Web Cache Deception.
+		authenticatedcaching.Check,
+		varyconsistency.Check,
+		cachepoisoning.Check,
+		cachedeception.Check,
 	}
 
 	defs := map[harnessx.CheckID]checkdef.CheckDef{
@@ -124,6 +134,11 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		pathbypass.Check.ID:          pathbypass.Def,
 		methodbypass.Check.ID:        methodbypass.Def,
 		nginxaliastraversal.Check.ID: nginxaliastraversal.Def,
+
+		authenticatedcaching.Check.ID: authenticatedcaching.Def,
+		varyconsistency.Check.ID:      varyconsistency.Def,
+		cachepoisoning.Check.ID:       cachepoisoning.Def,
+		cachedeception.Check.ID:       cachedeception.Def,
 	}
 
 	return checks, defs

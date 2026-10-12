@@ -28,6 +28,7 @@ func TestScan_HardenedServer_NoFindings(t *testing.T) {
 		h.Set("Referrer-Policy", "no-referrer")
 		h.Set("Permissions-Policy", "geolocation=()")
 		h.Set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
+		h.Set("Cache-Control", "no-store")
 		w.WriteHeader(http.StatusNotFound)
 	}))
 	defer srv.Close()

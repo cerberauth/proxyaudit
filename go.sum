@@ -2,6 +2,8 @@ github.com/BurntSushi/toml v1.6.0 h1:dRaEfpa2VI55EwlIW72hMRHdWouJeRF7TPYhI+AUQjk
 github.com/BurntSushi/toml v1.6.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
 github.com/cenkalti/backoff/v5 v5.0.3 h1:ZN+IMa753KfX5hd8vVaMixjnqRZ3y8CuJKRKj1xcsSM=
 github.com/cenkalti/backoff/v5 v5.0.3/go.mod h1:rkhZdG3JZukswDf7f0cwqPNk4K0sa+F97BxZthm/crw=
+github.com/cerberauth/cache-detective v0.0.0-20260917215736-01100a70209b h1:evf721Qco2kjtyjr+zRu2pLi5ow0tKZLPI5oALfyOqY=
+github.com/cerberauth/cache-detective v0.0.0-20260917215736-01100a70209b/go.mod h1:+neXN/38V+OxGAAWUBHFDntaFxa9M49f9bjaOmHaOAY=
 github.com/cerberauth/harnessx v0.4.0 h1:N9eIQYFv8Zda9r2CjJ5lM14GgCgF1ioeE/GE97YCPc0=
 github.com/cerberauth/harnessx v0.4.0/go.mod h1:CPUs+OKTAUgG9ZRcgSufRoRzjQ2oPLWZcFmck6pGDDs=
 github.com/cerberauth/reportx v0.3.0 h1:/6zrKrCUiMy1ZkF3sAit0Xk8mSiAf11on9NlHbtXKxc=

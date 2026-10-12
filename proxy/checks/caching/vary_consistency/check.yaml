@@ -1,0 +1,13 @@
+id: "caching.vary_consistency"
+name: "Cache Key & Vary Analysis"
+description: "Probes whether Accept-Encoding, Accept-Language, User-Agent, Cookie, and a custom header actually change the response, and compares that against the declared Vary header — flagging an input that changes the response but isn't declared in Vary as a cache-poisoning surface (the edge cache key doesn't match what actually varies the origin's response), and a declared input with no observed effect as wasted cache fragmentation."
+link: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Vary"
+tags:
+  - caching
+  - vary
+depends_on:
+  - "probe.http_fetch"
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 5.3
+cwe_id: "CWE-444"
+owasp: "API8:2023"

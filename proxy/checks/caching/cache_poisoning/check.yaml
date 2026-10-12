@@ -1,0 +1,13 @@
+id: "caching.cache_poisoning"
+name: "Cache Poisoning via Unkeyed Header"
+description: "Injects a marker via a header commonly left out of the cache key (X-Forwarded-Host, X-Forwarded-Scheme, X-Original-URL, X-Rewrite-URL) and checks whether a follow-up plain request receives the poisoned response — classic web cache poisoning. Requires --aggressive since a positive result plants content in a shared cache."
+link: "https://portswigger.net/web-security/web-cache-poisoning"
+tags:
+  - caching
+  - cache-poisoning
+depends_on:
+  - "probe.http_fetch"
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 9.3
+cwe_id: "CWE-444"
+owasp: "API8:2023"

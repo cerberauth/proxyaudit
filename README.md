@@ -64,7 +64,7 @@ proxyaudit scan https://proxy.example.com
 
 ```
 Flags:
-      --aggressive                     Enable Agg-tier checks (no effect in v0.1 — no Agg-tier checks exist yet)
+      --aggressive                     Enable Agg-tier checks that plant content in a shared cache (cache poisoning, cache deception)
       --engine string                  Hint the fronting proxy engine: nginx, traefik, envoy, caddy, or haproxy (optional, overrides auto-detection)
       --format string                  terminal display format (default "terminal")
       --no-color                       disable ANSI colors in terminal output
@@ -81,9 +81,12 @@ Exit codes: `0` no findings, `1` findings present, `2` runtime/connection
 error — standard for CI usage. See the [GitHub Actions guide](https://www.cerberauth.com/docs/proxyaudit/github-actions/)
 for CI examples.
 
-Every check is non-destructive and read-only (single or few requests, no
-brute-forcing or state mutation). Use only against systems you own or have
-explicit written permission to test.
+Every check is non-destructive and read-only by default (single or few
+requests, no brute-forcing or state mutation). The two `--aggressive`
+caching checks are the exception — they deliberately plant content in a
+shared cache to confirm cache poisoning/deception, and are skipped unless
+`--aggressive` is set. Use only against systems you own or have explicit
+written permission to test.
 
 ## Checks (v0.1)
 
@@ -111,6 +114,13 @@ for the full list with CWE/OWASP mapping and remediation.
   unexpected HTTP method reaching the same protected path; nginx
   off-by-slash alias traversal (a `location` without a trailing slash
   paired with an `alias` directive).
+- **Caching Behavior & Web Cache Deception**: authenticated responses
+  marked cacheable without an RFC 9111 §3.5 opt-in, undeclared cache-key
+  inputs (`Vary` inconsistency), cache poisoning via an unkeyed header
+  (`X-Forwarded-Host`, `X-Original-URL`, `Accept-Language`), and web cache
+  deception via static-extension/path confusion. Reuses
+  [`cache-detective`](https://github.com/cerberauth/cache-detective)'s
+  RFC 9111 cacheability analysis and CDN cache-status detection.
 
 ## Documentation
 

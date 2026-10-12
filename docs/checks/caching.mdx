@@ -1,0 +1,51 @@
+---
+title: Caching Behavior & Web Cache Deception
+description: Authenticated-response caching, cache-key/Vary consistency, unkeyed-header cache poisoning, and web cache deception via path confusion.
+---
+
+import { Aside } from '@/components/docs';
+
+These checks build on the same RFC 9111 (HTTP Caching) semantics as [`cache-detective`](https://github.com/cerberauth/cache-detective) — `caching.authenticated_caching` and `caching.cache_deception` reuse its `cache/checks/cacheability` cacheability determination directly, and `caching.vary_consistency` reuses its `cache/cdn` cache-status detection.
+
+<Aside type="tip">
+  Results here are inherently probabilistic (per-request/per-instance variance in front of a real CDN) — treat a lack of findings as "nothing observed in this pass", not a definitive pass.
+</Aside>
+
+| Check ID | Title | CVSS 4.0 | CWE | OWASP |
+| --- | --- | --- | --- | --- |
+| `caching.authenticated_caching` | Authenticated Response Marked Cacheable | 8.7 | [CWE-524](https://cwe.mitre.org/data/definitions/524.html) | API1:2023 |
+| `caching.vary_consistency` | Undeclared Cache-Key Input | 5.3 | [CWE-444](https://cwe.mitre.org/data/definitions/444.html) | API8:2023 |
+| `caching.cache_poisoning` | Cache Poisoning via Unkeyed Header | 9.3 | [CWE-444](https://cwe.mitre.org/data/definitions/444.html) | API8:2023 |
+| `caching.cache_deception` | Web Cache Deception via Path Confusion | 8.1 | [CWE-524](https://cwe.mitre.org/data/definitions/524.html) | API1:2023 |
+
+## `caching.authenticated_caching`
+
+Sends a request carrying credentials (a bearer token and a cookie) and checks whether the response is cacheable per RFC 9111 §3.5 without one of that section's opt-in directives (`must-revalidate`, `public`, `s-maxage`) — a shared cache/CDN in front of the origin isn't supposed to store a response to a request carrying `Authorization` otherwise. Severity is compounded in the finding description when the response body or `Set-Cookie` header carries PII, tokens, or session data (detected the same way as `cache-detective`'s equivalent check).
+
+**Remediate:** send `Cache-Control: private, no-store` (or an explicit opt-in if the response is genuinely safe to share) on every authenticated response.
+
+## `caching.vary_consistency`
+
+Probes whether `Accept-Encoding`, `Accept-Language`, and a custom header actually change the response, and compares that against the declared `Vary` header. An input that changes the response but isn't declared in `Vary` means a cache keyed only on the declared dimensions can serve one variant to a request that should have gotten another — a cache-poisoning surface whenever that input is attacker-controlled.
+
+**Remediate:** declare every request header the response actually varies on in `Vary`, or stop varying on it.
+
+## `caching.cache_poisoning`
+
+<Aside type="caution">
+  Requires `--aggressive`: a positive result has planted content in a shared cache that other users may be served.
+</Aside>
+
+Injects a marker via a header commonly left out of the cache key (`X-Forwarded-Host`, `X-Original-URL`, `Accept-Language`) and checks whether a follow-up plain request — no such header — receives the poisoned response.
+
+**Remediate:** either strip these headers before they can influence the response, or include them in the cache key.
+
+## `caching.cache_deception`
+
+<Aside type="caution">
+  Requires `--aggressive`: a positive result has planted content in a shared cache under an attacker-chosen path.
+</Aside>
+
+Appends a static-file extension or a nonexistent sub-path to the target's own path and checks whether the origin serves the exact same response under that path, and whether that response looks cacheable — the classic web-cache-deception surface where a path like `/account.js` ends up caching a user's authenticated `/account` response for anyone who requests it.
+
+**Remediate:** key the cache on the full normalized path (or disable caching for authenticated routes regardless of extension), and don't let the origin serve a dynamic route's content in response to a request for what looks like a static asset.
