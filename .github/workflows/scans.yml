@@ -104,6 +104,16 @@ jobs:
             vulnerable: false
             scheme: "http"
             relevant_pattern: "Access control bypassed via path normalization|Access control bypassed via HTTP method"
+          - challenge: "proxy-waf-bypass"
+            vulnerable: true
+            scheme: "http"
+            path: "/search?q=test"
+            relevant_pattern: "payload not blocked"
+          - challenge: "proxy-waf-bypass"
+            vulnerable: false
+            scheme: "http"
+            path: "/search?q=test"
+            relevant_pattern: "payload not blocked"
 
     steps:
       - uses: actions/checkout@v7
@@ -129,7 +139,7 @@ jobs:
       - name: proxyaudit scan
         continue-on-error: true
         run: |
-          ./proxyaudit scan ${{ matrix.scheme }}://localhost:8080 --format json | tee scan-report.json
+          ./proxyaudit scan ${{ matrix.scheme }}://localhost:8080${{ matrix.path }} --format json | tee scan-report.json
 
       - name: Check scan result
         run: |

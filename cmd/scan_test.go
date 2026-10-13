@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/cerberauth/proxyaudit/cmd"
+	"github.com/cerberauth/proxyaudit/internal/wafstub"
 )
 
 func runScan(t *testing.T, args ...string) error {
@@ -20,7 +21,7 @@ func runScan(t *testing.T, args ...string) error {
 }
 
 func TestScan_HardenedServer_NoFindings(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(wafstub.Wrap(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h := w.Header()
 		h.Set("Content-Security-Policy", "default-src 'self'; frame-ancestors 'none'")
 		h.Set("X-Frame-Options", "DENY")
@@ -30,7 +31,7 @@ func TestScan_HardenedServer_NoFindings(t *testing.T) {
 		h.Set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
 		h.Set("Cache-Control", "no-store")
 		w.WriteHeader(http.StatusNotFound)
-	}))
+	})))
 	defer srv.Close()
 
 	err := runScan(t, srv.URL)

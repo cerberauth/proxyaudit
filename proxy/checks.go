@@ -42,6 +42,9 @@ import (
 	"github.com/cerberauth/proxyaudit/proxy/checks/tls/hsts"
 	httpsredirect "github.com/cerberauth/proxyaudit/proxy/checks/tls/https_redirect"
 	protocolversion "github.com/cerberauth/proxyaudit/proxy/checks/tls/protocol_version"
+	baselinepayloads "github.com/cerberauth/proxyaudit/proxy/checks/waf/baseline_payloads"
+	contenttypeconsistency "github.com/cerberauth/proxyaudit/proxy/checks/waf/content_type_consistency"
+	encodingbypass "github.com/cerberauth/proxyaudit/proxy/checks/waf/encoding_bypass"
 	"github.com/cerberauth/proxyaudit/proxy/probebase"
 )
 
@@ -99,6 +102,11 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		varyconsistency.Check,
 		cachepoisoning.Check,
 		cachedeception.Check,
+
+		// WAF / Filtering Behavior Validation.
+		baselinepayloads.Check,
+		encodingbypass.Check,
+		contenttypeconsistency.Check,
 	}
 
 	defs := map[harnessx.CheckID]checkdef.CheckDef{
@@ -139,6 +147,10 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		varyconsistency.Check.ID:      varyconsistency.Def,
 		cachepoisoning.Check.ID:       cachepoisoning.Def,
 		cachedeception.Check.ID:       cachedeception.Def,
+
+		baselinepayloads.Check.ID:       baselinepayloads.Def,
+		encodingbypass.Check.ID:         encodingbypass.Def,
+		contenttypeconsistency.Check.ID: contenttypeconsistency.Def,
 	}
 
 	return checks, defs

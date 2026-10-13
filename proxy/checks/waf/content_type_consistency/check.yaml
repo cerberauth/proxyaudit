@@ -1,0 +1,11 @@
+id: "waf.content_type_consistency"
+name: "Inconsistent WAF Filtering Across Content Types"
+description: "Delivers each baseline payload as a query parameter and in form, JSON, multipart, plain-text, and gzip-encoded request bodies, flagging a payload that is blocked in one delivery but passed in another — the filter only inspects the content types and encodings it parses, so an attacker can pick one it skips."
+link: "https://owasp.org/www-project-modsecurity-core-rule-set/"
+tags:
+  - waf
+  - filtering
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 5.3
+cwe_id: "CWE-693"
+owasp: "API8:2023"
