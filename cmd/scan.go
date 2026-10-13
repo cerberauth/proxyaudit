@@ -36,8 +36,9 @@ func NewScanCmd() *cobra.Command {
 		Use:   "scan [url]",
 		Short: "Scan a reverse proxy / API gateway for common misconfigurations",
 		Long: `Scan runs every proxyaudit check against the target URL: TLS/transport,
-HTTP security headers, client-IP/header trust boundaries, and information
-disclosure via exposed management interfaces.
+HTTP security headers, client-IP/header trust boundaries, information
+disclosure via exposed management interfaces, path/access-control bypass,
+caching behavior, and WAF/filtering behavior.
 
 --aggressive threads harnessx.ScanContext.Aggressive through to checks that
 opt into it — currently the two caching checks that plant content in a

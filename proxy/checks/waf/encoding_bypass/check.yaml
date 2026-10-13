@@ -1,0 +1,11 @@
+id: "waf.encoding_bypass"
+name: "WAF Bypassed via Payload Encoding"
+description: "For each baseline payload the WAF blocks in plain form, retries it with case variation, double URL-encoding, and Unicode (fullwidth) forms that a backend commonly decodes or normalizes back to the original string, flagging any variant that gets through — the filter inspects the raw bytes rather than what the backend will actually interpret."
+link: "https://owasp.org/www-project-modsecurity-core-rule-set/"
+tags:
+  - waf
+  - filtering
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 5.3
+cwe_id: "CWE-693"
+owasp: "API8:2023"

@@ -1,0 +1,11 @@
+id: "waf.baseline_payloads"
+name: "Baseline Attack Payloads Not Blocked"
+description: "Sends a baseline set of textbook SQL injection, cross-site scripting, and path traversal payloads and compares each response against a benign control request, flagging any payload that isn't blocked by a WAF or filtering layer — i.e. that is passed through to the backend."
+link: "https://owasp.org/www-project-modsecurity-core-rule-set/"
+tags:
+  - waf
+  - filtering
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 5.3
+cwe_id: "CWE-693"
+owasp: "API8:2023"

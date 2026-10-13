@@ -121,6 +121,11 @@ for the full list with CWE/OWASP mapping and remediation.
   deception via static-extension/path confusion. Reuses
   [`cache-detective`](https://github.com/cerberauth/cache-detective)'s
   RFC 9111 cacheability analysis and CDN cache-status detection.
+- **WAF / Filtering Behavior Validation**: baseline SQLi, XSS, and path
+  traversal payloads confirmed blocked rather than passed through,
+  encoding-based bypass attempts (double URL-encoding, Unicode
+  normalization, case variation), and filtering consistency across
+  content types and encodings (form, JSON, multipart, plain text, gzip).
 
 ## Documentation
 

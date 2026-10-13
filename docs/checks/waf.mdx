@@ -1,0 +1,36 @@
+---
+title: WAF / Filtering Behavior Validation
+description: Whether a WAF or filtering layer blocks baseline SQLi/XSS/path-traversal payloads, resists encoding-based bypasses, and filters consistently across content types and encodings.
+---
+
+import { Aside } from '@/components/docs';
+
+These checks validate the filtering layer in front of the backend, not the backend itself: they send inert, textbook attack strings (in the first query parameter of the scanned URL, e.g. `q` for `https://example.com/search?q=test`, or `proxyaudit` if it has none — point the scan at a URL with a real parameter so a filter scoped to that endpoint is exercised) and judge each response against a benign control request of the same shape. A payload counts as **blocked** when the response differs from the control's with a rejection status (`400`, `403`, `406`, `418`, `429`, `451`, `501`) or the connection is dropped (e.g. nginx `return 444`); anything else — including a backend error — means it was passed through.
+
+<Aside type="tip">
+  A target with no WAF at all is reported by `waf.baseline_payloads` for every payload category. A filter that answers `200` with a block page can't be told apart from a pass-through, since detection is status-based.
+</Aside>
+
+| Check ID | Title | CVSS 4.0 | CWE | OWASP |
+| --- | --- | --- | --- | --- |
+| `waf.baseline_payloads` | Baseline Attack Payloads Not Blocked | 5.3 | [CWE-693](https://cwe.mitre.org/data/definitions/693.html) | API8:2023 |
+| `waf.encoding_bypass` | WAF Bypassed via Payload Encoding | 5.3 | [CWE-693](https://cwe.mitre.org/data/definitions/693.html) | API8:2023 |
+| `waf.content_type_consistency` | Inconsistent WAF Filtering Across Content Types | 5.3 | [CWE-693](https://cwe.mitre.org/data/definitions/693.html) | API8:2023 |
+
+## `waf.baseline_payloads`
+
+Sends the most textbook payload of each class — SQL injection (`' OR 1=1--`, `1 UNION SELECT NULL,NULL,NULL--`), cross-site scripting (`<script>alert(1)</script>`), and path traversal (`../../../../etc/passwd`) — and reports each class with a payload that was passed through. The finding states whether other classes were blocked (incomplete coverage) or none were (no filtering appears to be in place). Skipped if the benign control request fails or is itself rejected.
+
+**Remediate:** deploy a WAF or filtering module (e.g. ModSecurity with the OWASP Core Rule Set, a cloud WAF) in blocking rather than detection-only mode, with the SQLi, XSS, and path-traversal rule groups enabled.
+
+## `waf.encoding_bypass`
+
+For each baseline payload that is blocked in plain form, retries it with case variation (`sElEcT`), double URL-encoding (`%253Cscript%253E`), and Unicode fullwidth forms (`＜script＞`) that a backend commonly decodes or NFKC-normalizes back to the original. A variant that gets through is a bypass candidate; whether it is exploitable depends on whether the backend actually decodes it, which a black-box scan can't tell.
+
+**Remediate:** enable the rule set's normalization transformations (URL-decode repeatedly, lowercase, Unicode normalization) so inspection runs on the same canonical form the backend will interpret, and reject requests that stay encoded after decoding.
+
+## `waf.content_type_consistency`
+
+Delivers each baseline payload in the query string and in `application/x-www-form-urlencoded`, `application/json`, `multipart/form-data`, `text/plain`, and gzip-encoded (`Content-Encoding: gzip`) request bodies, each judged against its own benign control (a delivery the control request is rejected on is left out). A payload blocked in one delivery but passed in another means the filter only inspects the content types and encodings it parses.
+
+**Remediate:** enable request-body inspection for every content type the backend accepts (including JSON and multipart parsers and decompression of encoded bodies), and reject content types and encodings the application doesn't need.
