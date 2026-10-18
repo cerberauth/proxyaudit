@@ -4,18 +4,13 @@ import (
 	"fmt"
 
 	"github.com/cerberauth/harnessx"
-	"github.com/cerberauth/harnessx/reporters"
 	"github.com/cerberauth/proxyaudit/proxy"
 	"github.com/cerberauth/proxyaudit/proxy/probebase"
 	"github.com/cerberauth/proxyaudit/proxy/scanctx"
 	cobrareportx "github.com/cerberauth/x/cobrax/reportx"
 	"github.com/cerberauth/x/reportx/harnessreport"
-	"github.com/cerberauth/x/telemetryx"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel"
 )
-
-const scanOtelName = "github.com/cerberauth/proxyaudit/cmd/scan"
 
 var engineNames = map[string]scanctx.ProxyEngine{
 	"":        scanctx.EngineUnknown,
@@ -57,13 +52,6 @@ Use only against systems you own or have explicit written permission to test.`,
 
 			ctx := cmd.Context()
 
-			otelReporter, _ := reporters.NewOTelReporter(
-				ctx,
-				otel.Tracer(scanOtelName),
-				telemetryx.GetMeterProvider().Meter(scanOtelName),
-				reporters.WithPrefix("proxyaudit.scan"),
-			)
-
 			sinks, cleanup, err := cobrareportx.SinksFromFlags(cmd)
 			if err != nil {
 				return err
@@ -88,7 +76,7 @@ Use only against systems you own or have explicit written permission to test.`,
 
 			hxEngine := harnessx.New(
 				harnessx.WithChecks(checks...),
-				harnessx.WithReporters(otelReporter, reportxReporter),
+				harnessx.WithReporters(reportxReporter),
 			)
 
 			scanTarget := scanctx.NewTarget(target, &scanctx.ScanContext{
