@@ -10,10 +10,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// argvioAPIKey is proxyaudit's public_ingest-scoped Argvio API key, selecting the
+// "proxyaudit" tenant its usage analytics land in. It only allows sending usage
+// data, so it is safe to embed.
+const argvioAPIKey = "argv_live_pub_RNd_Ho771fi4xeSS04er89Xkbs3JOPIp" //nolint:gosec // ingest-only key, not a secret
+
 var (
-	sqaOptOut    bool
-	otelShutdown func(context.Context) error
-	toolVersion  string
+	sqaOptOut   bool
+	toolVersion string
 )
 
 var name = "proxyaudit"
@@ -27,17 +31,6 @@ func NewRootCmd(projectVersion, commit, date string) (cmd *cobra.Command) {
 		Long:          `proxyaudit dynamically tests whether a reverse proxy or API gateway is securely configured: TLS/transport, HTTP security headers, client-IP/header trust boundaries, and information disclosure via exposed management interfaces.`,
 		SilenceErrors: true,
 		SilenceUsage:  true,
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			if !sqaOptOut {
-				otelShutdown, _ = telemetryx.New(cmd.Context(), name, projectVersion, telemetryx.WithCommit(commit), telemetryx.WithBuildDate(date))
-			}
-		},
-		PersistentPostRun: func(cmd *cobra.Command, args []string) {
-			if otelShutdown != nil {
-				_ = otelShutdown(cmd.Context())
-				otelShutdown = nil
-			}
-		},
 	}
 
 	rootCmd.AddCommand(NewScanCmd())
@@ -51,18 +44,11 @@ func NewRootCmd(projectVersion, commit, date string) (cmd *cobra.Command) {
 // This is called by main.main(). It only needs to happen once to the RootCmd.
 func Execute(projectVersion, commit, date string) {
 	c := NewRootCmd(projectVersion, commit, date)
-	defer func() {
-		if otelShutdown != nil {
-			_ = otelShutdown(context.Background())
-			otelShutdown = nil
-		}
-	}()
+	argvioShutdown := telemetryx.Instrument(c, projectVersion, argvioAPIKey)
+	defer func() { _ = argvioShutdown(context.Background()) }()
 
 	if err := c.Execute(); err != nil {
-		if otelShutdown != nil {
-			_ = otelShutdown(context.Background())
-			otelShutdown = nil
-		}
+		_ = argvioShutdown(context.Background())
 
 		// errFindingsPresent (scan.go) carries no message — the report
 		// was already written to every configured sink by the time it's
@@ -73,8 +59,8 @@ func Execute(projectVersion, commit, date string) {
 
 		var runtimeErr *RuntimeError
 		if errors.As(err, &runtimeErr) {
-			os.Exit(2) //nolint:gocritic // otelShutdown was already run explicitly above, not relying on the deferred call
+			os.Exit(2) //nolint:gocritic // argvioShutdown was already run explicitly above, not relying on the deferred call
 		}
-		os.Exit(1) //nolint:gocritic // otelShutdown was already run explicitly above, not relying on the deferred call
+		os.Exit(1) //nolint:gocritic // argvioShutdown was already run explicitly above, not relying on the deferred call
 	}
 }
