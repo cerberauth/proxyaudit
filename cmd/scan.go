@@ -4,18 +4,15 @@ import (
 	"fmt"
 
 	"github.com/cerberauth/harnessx"
-	"github.com/cerberauth/harnessx/reporters"
 	"github.com/cerberauth/proxyaudit/proxy"
 	"github.com/cerberauth/proxyaudit/proxy/probebase"
 	"github.com/cerberauth/proxyaudit/proxy/scanctx"
 	cobrareportx "github.com/cerberauth/x/cobrax/reportx"
 	"github.com/cerberauth/x/reportx/harnessreport"
 	"github.com/cerberauth/x/telemetryx"
+	"github.com/cerberauth/x/telemetryx/scanmetrics"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel"
 )
-
-const scanOtelName = "github.com/cerberauth/proxyaudit/cmd/scan"
 
 var engineNames = map[string]scanctx.ProxyEngine{
 	"":        scanctx.EngineUnknown,
@@ -25,6 +22,10 @@ var engineNames = map[string]scanctx.ProxyEngine{
 	"caddy":   scanctx.EngineCaddy,
 	"haproxy": scanctx.EngineHAProxy,
 }
+
+// engineCounter counts scans by the --engine hint, "unknown" without one
+// (argvio.metrics.yaml). Values come from engineNames only.
+var engineCounter = telemetryx.NewCounter("scan.engine", "engine")
 
 func NewScanCmd() *cobra.Command {
 	var (
@@ -57,13 +58,6 @@ Use only against systems you own or have explicit written permission to test.`,
 
 			ctx := cmd.Context()
 
-			otelReporter, _ := reporters.NewOTelReporter(
-				ctx,
-				otel.Tracer(scanOtelName),
-				telemetryx.GetMeterProvider().Meter(scanOtelName),
-				reporters.WithPrefix("proxyaudit.scan"),
-			)
-
 			sinks, cleanup, err := cobrareportx.SinksFromFlags(cmd)
 			if err != nil {
 				return err
@@ -86,10 +80,12 @@ Use only against systems you own or have explicit written permission to test.`,
 				ShowAllFindings: showAllFindings,
 			})
 
+			metricsReporter := scanmetrics.New(ctx, scanmetrics.Config{CheckDefs: defs})
 			hxEngine := harnessx.New(
 				harnessx.WithChecks(checks...),
-				harnessx.WithReporters(otelReporter, reportxReporter),
+				harnessx.WithReporters(reportxReporter, metricsReporter),
 			)
+			engineCounter.Add(ctx, 1, string(engine))
 
 			scanTarget := scanctx.NewTarget(target, &scanctx.ScanContext{
 				Engine:     engine,
