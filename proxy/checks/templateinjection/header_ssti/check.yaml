@@ -1,0 +1,13 @@
+id: "templateinjection.header_ssti"
+name: "Request Header Rendered as a Server-Side Template"
+description: "Injects a benign arithmetic expression (e.g. {{7919*8039}}) in several template-engine syntaxes into reflected request headers (Referer, User-Agent, X-Forwarded-Host) and reports when the response contains the evaluated product while a clean control request does not — the proxy is rendering a request header through a template engine (e.g. Caddy's `templates` directive), enabling file read / environment disclosure via crafted expressions. Requires --aggressive."
+link: "https://portswigger.net/web-security/server-side-template-injection"
+tags:
+  - template-injection
+  - ssti
+depends_on:
+  - "probe.http_fetch"
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 9.3
+cwe_id: "CWE-1336"
+owasp: "API8:2023"
