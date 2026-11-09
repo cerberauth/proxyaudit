@@ -37,6 +37,9 @@ import (
 	xforwardedfor "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_forwarded_for"
 	xforwardedhost "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_forwarded_host"
 	xrealip "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_real_ip"
+	missingthrottling "github.com/cerberauth/proxyaudit/proxy/checks/ratelimit/missing_throttling"
+	oversizedheader "github.com/cerberauth/proxyaudit/proxy/checks/ratelimit/oversized_header"
+	spoofedipbypass "github.com/cerberauth/proxyaudit/proxy/checks/ratelimit/spoofed_ip_bypass"
 	ambiguousframing "github.com/cerberauth/proxyaudit/proxy/checks/smuggling/ambiguous_framing"
 	internaltargetaccess "github.com/cerberauth/proxyaudit/proxy/checks/ssrf/internal_target_access"
 	openforwardproxy "github.com/cerberauth/proxyaudit/proxy/checks/ssrf/open_forward_proxy"
@@ -120,6 +123,11 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		internaltargetaccess.Check,
 		// Request Smuggling / Desync (Agg-tier, --aggressive).
 		ambiguousframing.Check,
+
+		// Rate Limiting & DoS Resilience (Agg-tier, --aggressive).
+		missingthrottling.Check,
+		spoofedipbypass.Check,
+		oversizedheader.Check,
 	}
 
 	defs := map[harnessx.CheckID]checkdef.CheckDef{
@@ -171,6 +179,10 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		internaltargetaccess.Check.ID: internaltargetaccess.Def,
 
 		ambiguousframing.Check.ID: ambiguousframing.Def,
+
+		missingthrottling.Check.ID: missingthrottling.Def,
+		spoofedipbypass.Check.ID:   spoofedipbypass.Def,
+		oversizedheader.Check.ID:   oversizedheader.Def,
 	}
 
 	return checks, defs

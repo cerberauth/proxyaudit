@@ -1,0 +1,13 @@
+id: "ratelimit.oversized_header"
+name: "Oversized Request Headers Accepted Without a Limit"
+description: "Sends one request carrying a single 128 KiB header — above common proxy caps (nginx/Apache ~8 KiB) but bounded — and flags acceptance (not a 431/400/413 rejection). A proxy with no header-size cap lets a client force large per-request allocations, a low-cost memory-pressure / DoS vector. Confirms an ordinary request is accepted first. Requires --aggressive."
+link: "https://owasp.org/www-project-api-security/"
+tags:
+  - rate-limiting
+  - dos
+depends_on:
+  - "probe.http_fetch"
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N"
+cvss_score: 5.3
+cwe_id: "CWE-770"
+owasp: "API4:2023"
