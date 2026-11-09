@@ -1,0 +1,60 @@
+---
+title: Open Proxy / SSRF via the Proxy
+description: Whether the proxy honors absolute-form request-targets and fetches arbitrary external or internal hosts on the client's behalf.
+---
+
+import { Aside } from '@/components/docs';
+
+A reverse proxy should route only to its configured backend. If it instead
+honors the authority in an absolute-form request-target
+(`GET http://any.host/ HTTP/1.1`), it behaves as an open forward proxy: an
+attacker can make it fetch arbitrary hosts — the public internet (open
+relay) and, far worse, internal-only surfaces it fronts, including the
+cloud metadata service.
+
+<Aside type="caution">
+  These checks are part of the v0.4 aggressive suite and only run with
+  `--aggressive`. They induce the proxy to make outbound requests. The
+  open-proxy probe targets IANA's reserved `example.com`; the scanner never
+  contacts it directly — only the proxy does, and only if it forwards.
+</Aside>
+
+| Check ID | Title | CVSS 4.0 | CWE | OWASP |
+| --- | --- | --- | --- | --- |
+| `ssrf.open_forward_proxy` | Open Forward Proxy / SSRF via Absolute-URI Request | 8.2 | [CWE-918](https://cwe.mitre.org/data/definitions/918.html) | API7:2023 |
+| `ssrf.internal_target_access` | SSRF Reaches Internal Hosts via the Proxy | 9.3 | [CWE-918](https://cwe.mitre.org/data/definitions/918.html) | API7:2023 |
+
+## `ssrf.open_forward_proxy`
+
+Sends an absolute-form request for `http://example.com/` and confirms
+open-proxy behaviour only when the proxy returns that domain's recognizable
+page content, which the backend never serves. Establishes the foundational
+SSRF primitive: the proxy honors a client-supplied request-target authority
+instead of routing only to its backend.
+
+**Remediate:** reject absolute-form request-targets (or ignore their
+authority) and route strictly to the configured upstream; never operate a
+reverse proxy with forward-proxy semantics enabled on an internet-facing
+listener.
+
+## `ssrf.internal_target_access`
+
+Building on the open-proxy primitive, probes whether forwarding reaches the
+proxy's own loopback, link-local cloud-metadata endpoints
+(`169.254.169.254`, `metadata.google.internal`), and private RFC 1918
+ranges. Detection is differential: it first learns how the proxy answers an
+unresolvable forward, then flags only internal targets whose response is a
+success distinct from that baseline. If the proxy serves its backend for
+any authority (not forwarding), the check skips.
+
+**Remediate:** in addition to disabling absolute-URI forwarding, apply
+egress filtering so the proxy cannot connect to loopback, link-local, and
+private ranges, and enforce IMDSv2 (session-token) on cloud instances.
+
+## Port scanning
+
+Active port scanning through a confirmed-SSRF proxy (checklist item 4) is
+intentionally **not** performed automatically — it is the most intrusive
+step and only meaningful once reachability is established. It is left to a
+dedicated, separately gated follow-up rather than running under
+`--aggressive`.

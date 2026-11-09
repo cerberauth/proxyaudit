@@ -1,0 +1,13 @@
+id: "ssrf.open_forward_proxy"
+name: "Open Forward Proxy / SSRF via Absolute-URI Request"
+description: "Sends an absolute-form request (GET http://example.com/) to the proxy and confirms it fetched the arbitrary external host — the proxy honors the client-supplied request-target authority rather than routing only to its backend, making it an open relay and SSRF pivot to any host it can reach. Uses IANA's reserved example domain; the scanner never contacts it directly. Requires --aggressive."
+link: "https://owasp.org/www-community/attacks/Server_Side_Request_Forgery"
+tags:
+  - ssrf
+  - open-proxy
+depends_on:
+  - "probe.http_fetch"
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 8.2
+cwe_id: "CWE-918"
+owasp: "API7:2023"
