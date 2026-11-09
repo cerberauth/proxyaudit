@@ -45,6 +45,7 @@ func evalBrace(header string) http.Handler {
 				return
 			}
 		}
+		//nolint:gosec // G705: test reflector deliberately echoes request input
 		_, _ = w.Write([]byte("echo: " + v))
 	})
 }
@@ -65,6 +66,7 @@ func TestHeaderSSTI_PlainEcho_NoFindings(t *testing.T) {
 	// Reflects the header verbatim without evaluating it: the raw
 	// expression comes back, never the product.
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		//nolint:gosec // G705: test reflector deliberately echoes request input
 		_, _ = w.Write([]byte("referer: " + r.Header.Get("Referer")))
 	}))
 	defer srv.Close()
