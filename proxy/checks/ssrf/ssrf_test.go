@@ -50,6 +50,7 @@ func openProxy() http.Handler {
 		case host == "example.com":
 			_, _ = w.Write([]byte("<h1>Example Domain</h1><p>illustrative examples</p>"))
 		case internalHosts[host]:
+			//nolint:gosec // G705: test stub echoes the forwarded host on purpose
 			_, _ = w.Write([]byte("INTERNAL-SERVICE " + host))
 		default: // unresolvable / unreachable
 			w.WriteHeader(http.StatusBadGateway)
