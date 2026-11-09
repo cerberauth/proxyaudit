@@ -1,0 +1,13 @@
+id: "ssrf.internal_target_access"
+name: "SSRF Reaches Internal Hosts via the Proxy"
+description: "When the proxy honors absolute-form request-targets, probes whether that reaches hosts a client never should — the proxy's own loopback, link-local cloud-metadata endpoints (169.254.169.254, metadata.google.internal), and private RFC 1918 ranges. Differential and conservative: it first learns how the proxy answers an unresolvable forward, and only flags internal targets whose response is a success distinct from that baseline; if the proxy serves its backend for any authority it skips. Requires --aggressive."
+link: "https://owasp.org/www-community/attacks/Server_Side_Request_Forgery"
+tags:
+  - ssrf
+  - open-proxy
+depends_on:
+  - "probe.http_fetch"
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:N/SC:H/SI:L/SA:N"
+cvss_score: 9.3
+cwe_id: "CWE-918"
+owasp: "API7:2023"

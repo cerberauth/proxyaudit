@@ -37,6 +37,8 @@ import (
 	xforwardedfor "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_forwarded_for"
 	xforwardedhost "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_forwarded_host"
 	xrealip "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_real_ip"
+	internaltargetaccess "github.com/cerberauth/proxyaudit/proxy/checks/ssrf/internal_target_access"
+	openforwardproxy "github.com/cerberauth/proxyaudit/proxy/checks/ssrf/open_forward_proxy"
 	headerssti "github.com/cerberauth/proxyaudit/proxy/checks/templateinjection/header_ssti"
 	"github.com/cerberauth/proxyaudit/proxy/checks/tls/certificate"
 	cipherstrength "github.com/cerberauth/proxyaudit/proxy/checks/tls/cipher_strength"
@@ -111,6 +113,10 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 
 		// Proxy-Level Template Injection (Agg-tier, --aggressive).
 		headerssti.Check,
+
+		// Open Proxy / SSRF via the Proxy (Agg-tier, --aggressive).
+		openforwardproxy.Check,
+		internaltargetaccess.Check,
 	}
 
 	defs := map[harnessx.CheckID]checkdef.CheckDef{
@@ -157,6 +163,9 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		contenttypeconsistency.Check.ID: contenttypeconsistency.Def,
 
 		headerssti.Check.ID: headerssti.Def,
+
+		openforwardproxy.Check.ID:     openforwardproxy.Def,
+		internaltargetaccess.Check.ID: internaltargetaccess.Def,
 	}
 
 	return checks, defs
