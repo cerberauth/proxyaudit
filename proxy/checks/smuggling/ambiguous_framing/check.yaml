@@ -1,0 +1,13 @@
+id: "smuggling.ambiguous_framing"
+name: "Ambiguous Request Framing Accepted (Smuggling Precondition)"
+description: "Sends requests with RFC-violating, ambiguous message length — conflicting duplicate Content-Length, Content-Length together with Transfer-Encoding (CL.TE/TE.CL), and obfuscated Transfer-Encoding (TE.TE) — and flags any the proxy accepts instead of rejecting. Acceptance is the precondition for request smuggling / desync when a back-end resolves the length differently. Non-destructive: it sends only benign self-contained bodies and never attempts the desync itself. Requires --aggressive."
+link: "https://portswigger.net/web-security/request-smuggling"
+tags:
+  - smuggling
+  - desync
+depends_on:
+  - "probe.http_fetch"
+cvss_vector: "CVSS:4.0/AV:N/AC:H/AT:P/PR:N/UI:N/VC:H/VI:H/VA:L/SC:N/SI:N/SA:N"
+cvss_score: 7.3
+cwe_id: "CWE-444"
+owasp: "API8:2023"
