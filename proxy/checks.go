@@ -37,6 +37,7 @@ import (
 	xforwardedfor "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_forwarded_for"
 	xforwardedhost "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_forwarded_host"
 	xrealip "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_real_ip"
+	headerssti "github.com/cerberauth/proxyaudit/proxy/checks/templateinjection/header_ssti"
 	"github.com/cerberauth/proxyaudit/proxy/checks/tls/certificate"
 	cipherstrength "github.com/cerberauth/proxyaudit/proxy/checks/tls/cipher_strength"
 	"github.com/cerberauth/proxyaudit/proxy/checks/tls/hsts"
@@ -107,6 +108,9 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		baselinepayloads.Check,
 		encodingbypass.Check,
 		contenttypeconsistency.Check,
+
+		// Proxy-Level Template Injection (Agg-tier, --aggressive).
+		headerssti.Check,
 	}
 
 	defs := map[harnessx.CheckID]checkdef.CheckDef{
@@ -151,6 +155,8 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		baselinepayloads.Check.ID:       baselinepayloads.Def,
 		encodingbypass.Check.ID:         encodingbypass.Def,
 		contenttypeconsistency.Check.ID: contenttypeconsistency.Def,
+
+		headerssti.Check.ID: headerssti.Def,
 	}
 
 	return checks, defs

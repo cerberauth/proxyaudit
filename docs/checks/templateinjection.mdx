@@ -1,0 +1,40 @@
+---
+title: Proxy-Level Template Injection
+description: Whether the proxy renders a template engine over request headers it reflects, evaluating attacker-supplied expressions server-side.
+---
+
+import { Aside } from '@/components/docs';
+
+Some reverse proxies can render a template engine over the response they
+build — Caddy's `templates` directive evaluates Go/sprig template syntax,
+and similar features exist in other gateways. When such a directive renders
+a request header the proxy reflects back (an error page, a redirect, a
+debug echo), an attacker who controls that header controls a server-side
+template, which escalates to file read and environment-variable disclosure.
+
+<Aside type="caution">
+  This check is part of the v0.4 aggressive suite and only runs with
+  `--aggressive`. It injects crafted expressions into request headers, but
+  only benign arithmetic — it never attempts a file read, environment
+  access, or any other side effect.
+</Aside>
+
+| Check ID | Title | CVSS 4.0 | CWE | OWASP |
+| --- | --- | --- | --- | --- |
+| `templateinjection.header_ssti` | Request Header Rendered as a Server-Side Template | 9.3 | [CWE-1336](https://cwe.mitre.org/data/definitions/1336.html) | API8:2023 |
+
+## `templateinjection.header_ssti`
+
+Injects a benign arithmetic expression (`7919*8039`, product `63660841`) in
+several template-engine syntaxes — `{{ }}` (Jinja2/Twig/Nunjucks),
+`{{mul }}` (Go `text/template` + sprig, as used by Caddy's `templates`
+directive), `${ }` (JSP/Spring EL), and `#{ }` (Ruby/Thymeleaf) — into
+reflected request headers (`Referer`, `User-Agent`, `X-Forwarded-Host`). A
+finding is reported only when the evaluated product appears in the response
+while a clean control request did not contain it, and the raw expression is
+not echoed verbatim — i.e. the expression was evaluated, not reflected.
+
+**Remediate:** never render a template engine over client-controlled input.
+Remove request headers (and any other client-supplied value) from template
+contexts, or escape them before rendering, so reflected data is treated as
+data rather than template source.
