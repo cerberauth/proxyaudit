@@ -1,0 +1,52 @@
+---
+title: Request Smuggling / Desync
+description: Whether the proxy rejects ambiguous request framing — the precondition for CL.TE / TE.CL / TE.TE smuggling.
+---
+
+import { Aside } from '@/components/docs';
+
+Every classic HTTP request-smuggling attack starts from the same flaw: a
+message whose length is ambiguous (conflicting `Content-Length`, or
+`Content-Length` together with `Transfer-Encoding`, or an obfuscated
+`Transfer-Encoding`) that a front-end proxy and a back-end resolve
+differently. RFC 9112 requires rejecting such a message; a proxy that
+accepts it supplies the desync primitive.
+
+<Aside type="caution">
+  This check is part of the v0.4 aggressive suite and only runs with
+  `--aggressive`. It is non-destructive: it sends only benign,
+  self-contained bodies on their own `Connection: close` sockets and never
+  attempts the desync itself (which could poison another client's
+  connection) — it reports purely on whether the malformed framing was
+  rejected or accepted.
+</Aside>
+
+| Check ID | Title | CVSS 4.0 | CWE | OWASP |
+| --- | --- | --- | --- | --- |
+| `smuggling.ambiguous_framing` | Ambiguous Request Framing Accepted (Smuggling Precondition) | 7.3 | [CWE-444](https://cwe.mitre.org/data/definitions/444.html) | API8:2023 |
+
+## `smuggling.ambiguous_framing`
+
+Sends four RFC-violating framings and flags any the proxy answers with a
+2xx/3xx instead of rejecting (4xx/5xx or a dropped connection):
+
+- **conflicting duplicate `Content-Length`** — two different values (CL.CL),
+- **`Content-Length` + `Transfer-Encoding: chunked`** — the CL.TE / TE.CL ambiguity,
+- **duplicate `Transfer-Encoding` with a non-chunked final encoding** — TE.TE,
+- **whitespace-obfuscated header name** (`Transfer-Encoding : chunked`).
+
+Each body is bounded and self-contained so no probe can stall a
+length-honoring parser. The check first confirms a well-formed POST is
+accepted; if the endpoint rejects even that, it skips.
+
+**Remediate:** run a front-end that strictly conforms to RFC 9112 — reject
+messages with conflicting `Content-Length`, with both `Content-Length` and
+`Transfer-Encoding`, or with an unrecognized/obfuscated `Transfer-Encoding`
+— and ensure the front-end and back-end share the same parsing rules.
+
+## Not yet covered
+
+HTTP/2→1.1 downgrade smuggling (H2.CL / H2.TE), raw H2C smuggling, and
+connection-reuse boundary isolation (checklist items 2, 3, 5) require
+HTTP/2 framing control and are tracked separately; the downgrade path ties
+to the HTTP/2 & HTTP/3 protocol work.
