@@ -1,0 +1,13 @@
+id: "ratelimit.spoofed_ip_bypass"
+name: "Rate Limit Bypassed via Spoofed Client-IP Header"
+description: "For a proxy that does throttle, tests whether the rate limit is keyed on a client-supplied header (X-Forwarded-For, X-Real-IP, True-Client-IP, X-Client-IP, X-Forwarded) rather than the real connection peer. It drives the proxy into throttling, confirms a plain request is still throttled, then flips the response back to success by rotating a spoofed IP in each header — a confirmed bypass. Skips when no throttling is observed. Requires --aggressive."
+link: "https://portswigger.net/web-security/web-cache-deception"
+tags:
+  - rate-limiting
+  - dos
+depends_on:
+  - "probe.http_fetch"
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N"
+cvss_score: 6.9
+cwe_id: "CWE-770"
+owasp: "API4:2023"

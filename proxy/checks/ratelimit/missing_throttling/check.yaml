@@ -1,0 +1,13 @@
+id: "ratelimit.missing_throttling"
+name: "No Per-Client Request Throttling at the Proxy"
+description: "Sends a small bounded burst from a single client and reports when none of the requests is throttled (no 429/503) — the proxy enforces no per-client rate limit of its own, so one client can drive unbounded load through to the backend. Informational-to-low: rate limiting at the backend or an external layer is not visible to a single-client burst. Requires --aggressive."
+link: "https://owasp.org/www-project-api-security/"
+tags:
+  - rate-limiting
+  - dos
+depends_on:
+  - "probe.http_fetch"
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N"
+cvss_score: 5.3
+cwe_id: "CWE-770"
+owasp: "API4:2023"
