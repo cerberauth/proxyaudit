@@ -37,6 +37,7 @@ import (
 	xforwardedfor "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_forwarded_for"
 	xforwardedhost "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_forwarded_host"
 	xrealip "github.com/cerberauth/proxyaudit/proxy/checks/headertrust/x_real_ip"
+	h2authoritytrust "github.com/cerberauth/proxyaudit/proxy/checks/protocol/h2_authority_trust"
 	missingthrottling "github.com/cerberauth/proxyaudit/proxy/checks/ratelimit/missing_throttling"
 	oversizedheader "github.com/cerberauth/proxyaudit/proxy/checks/ratelimit/oversized_header"
 	spoofedipbypass "github.com/cerberauth/proxyaudit/proxy/checks/ratelimit/spoofed_ip_bypass"
@@ -128,6 +129,9 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		missingthrottling.Check,
 		spoofedipbypass.Check,
 		oversizedheader.Check,
+
+		// HTTP/2 & HTTP/3 Protocol-Specific (Agg-tier, --aggressive).
+		h2authoritytrust.Check,
 	}
 
 	defs := map[harnessx.CheckID]checkdef.CheckDef{
@@ -183,6 +187,8 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		missingthrottling.Check.ID: missingthrottling.Def,
 		spoofedipbypass.Check.ID:   spoofedipbypass.Def,
 		oversizedheader.Check.ID:   oversizedheader.Def,
+
+		h2authoritytrust.Check.ID: h2authoritytrust.Def,
 	}
 
 	return checks, defs

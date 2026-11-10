@@ -1,0 +1,13 @@
+id: "protocol.h2_authority_trust"
+name: "HTTP/2 :authority Pseudo-Header Trusted / Reflected"
+description: "Over a forced HTTP/2 connection, sends a distinctive marker as the :authority pseudo-header and reports when the proxy reflects it (in the body or a response header) while a clean control request does not — the proxy converts/trusts a client-supplied :authority it never validated, the HTTP/2 analogue of Host-header injection (influencing routing, cache keys, absolute-URL generation). Skips against HTTP/1.1-only targets. Requires --aggressive."
+link: "https://portswigger.net/web-security/host-header"
+tags:
+  - protocol
+  - http2
+depends_on:
+  - "probe.http_fetch"
+cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N"
+cvss_score: 5.3
+cwe_id: "CWE-444"
+owasp: "API8:2023"
