@@ -1,0 +1,50 @@
+---
+title: HTTP/2 & HTTP/3 Protocol-Specific
+description: Whether the proxy trusts the client-supplied HTTP/2 :authority pseudo-header during its conversion to the backend.
+---
+
+import { Aside } from '@/components/docs';
+
+HTTP/2 carries request metadata in pseudo-headers (`:authority`, `:path`,
+`:scheme`, `:method`) that a proxy must convert to HTTP/1.1
+Host/request-line semantics for most backends. Mistrusting or
+mis-converting those pseudo-headers is the root of a class of HTTP/2
+routing and desync issues.
+
+<Aside type="caution">
+  This check is part of the v0.4 aggressive suite and only runs with
+  `--aggressive`. It uses the stable HTTP/2 client (forced ALPN `h2`), not
+  raw frame manipulation, and sends only a benign marker.
+</Aside>
+
+| Check ID | Title | CVSS 4.0 | CWE | OWASP |
+| --- | --- | --- | --- | --- |
+| `protocol.h2_authority_trust` | HTTP/2 :authority Pseudo-Header Trusted / Reflected | 5.3 | [CWE-444](https://cwe.mitre.org/data/definitions/444.html) | API8:2023 |
+
+## `protocol.h2_authority_trust`
+
+Over a forced HTTP/2 connection, sends a distinctive, non-routable marker
+as the `:authority` pseudo-header and reports a finding only when the proxy
+reflects it (in the body or a response header) while a clean control
+request does not — the proxy trusts a client-supplied `:authority` it never
+validated. This is the HTTP/2 analogue of Host-header injection: it can
+influence routing, cache keys, and absolute-URL generation via the h2
+control plane. Against an HTTP/1.1-only target (no ALPN `h2`), the check
+skips.
+
+**Remediate:** validate the `:authority` against the proxy's configured
+virtual hosts, and ensure the `:authority`→`Host` conversion toward the
+backend is consistent and canonicalized.
+
+## Not yet covered
+
+Three checklist items are intentionally deferred:
+
+- **Stream multiplexing / rapid-reset abuse (CVE-2023-44487)** — exercising
+  it *is* the denial-of-service attack, inappropriate to run against a live
+  target.
+- **QUIC / HTTP/3 malformed frame handling** — no stable HTTP/3 stack is
+  available in the Go standard library, and malformed-frame fuzzing is
+  intrusive.
+- **Protocol downgrade as a smuggling precondition** — requires raw HTTP/2
+  frame construction; it is tracked alongside the Request Smuggling work.
