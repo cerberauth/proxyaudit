@@ -6,6 +6,8 @@ github.com/cerberauth/cache-detective v0.0.0-20260917215736-01100a70209b h1:evf7
 github.com/cerberauth/cache-detective v0.0.0-20260917215736-01100a70209b/go.mod h1:+neXN/38V+OxGAAWUBHFDntaFxa9M49f9bjaOmHaOAY=
 github.com/cerberauth/harnessx v0.5.0 h1:9XTxMkyLAnMQBkrxB4ZZ9O4Zbf/3u6FYI3TzzVIDvSw=
 github.com/cerberauth/harnessx v0.5.0/go.mod h1:uXaZUv/Ic5PMsxHb2KzMFaTQjWTDftF5r0yYS6Ha22U=
+github.com/cerberauth/harnessx v0.5.1-0.20261115193329-811e1dec1662 h1:eMPuJC9DTf6bYnF9Hy2L45sS422Poz5Sf3ReqdFyry0=
+github.com/cerberauth/harnessx v0.5.1-0.20261115193329-811e1dec1662/go.mod h1:uXaZUv/Ic5PMsxHb2KzMFaTQjWTDftF5r0yYS6Ha22U=
 github.com/cerberauth/reportx v0.4.0 h1:Nb+NsC2dvFEj4mUBEVN9jkD9i7++CMpMTqxYBmBbr/I=
 github.com/cerberauth/reportx v0.4.0/go.mod h1:w51Q19ZWF7OJdDmBoSwBVf2DfdcE8t883fEsKwcd0+o=
 github.com/cerberauth/x v0.0.0-20261107180155-4a52fa2eefe1 h1:mkI0iC754vwv8HVNlh2lWwY2vh0SW7NP56DXfSwez4k=

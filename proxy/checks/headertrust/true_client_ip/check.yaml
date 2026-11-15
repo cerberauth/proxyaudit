@@ -5,6 +5,6 @@ link: "https://techdocs.akamai.com/property-mgr/docs/custom-behaviors-true-clien
 tags:
   - headertrust
 cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N"
-cvss_score: 5.3
+cvss_score: 6.9
 cwe_id: "CWE-348"
 owasp: "API8:2023"
