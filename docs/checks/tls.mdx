@@ -5,21 +5,23 @@ description: Protocol version, cipher strength/forward secrecy, certificate chai
 
 | Check ID | Title | CVSS 4.0 | CWE | OWASP |
 | --- | --- | --- | --- | --- |
-| `tls.protocol_version` | Weak TLS Protocol Version Accepted | 5.3 | [CWE-326](https://cwe.mitre.org/data/definitions/326.html) | API8:2023 |
-| `tls.cipher_strength` | Weak Cipher Suite or Missing Forward Secrecy | 4.8 | [CWE-327](https://cwe.mitre.org/data/definitions/327.html) | API8:2023 |
-| `tls.certificate` | Certificate Chain, Expiry, Hostname, or OCSP Stapling Issue | 5.3 | [CWE-295](https://cwe.mitre.org/data/definitions/295.html) | API8:2023 |
-| `tls.https_redirect` | Missing HTTP to HTTPS Redirect | 5.3 | [CWE-319](https://cwe.mitre.org/data/definitions/319.html) | API8:2023 |
+| `tls.protocol_version` | Weak TLS Protocol Version Accepted | 6.9 | [CWE-326](https://cwe.mitre.org/data/definitions/326.html) | API8:2023 |
+| `tls.cipher_strength` | Weak Cipher Suite or Missing Forward Secrecy | 6.9 | [CWE-327](https://cwe.mitre.org/data/definitions/327.html) | API8:2023 |
+| `tls.certificate` | Certificate Chain, Expiry, Hostname, or OCSP Stapling Issue | 6.9 | [CWE-295](https://cwe.mitre.org/data/definitions/295.html) | API8:2023 |
+| `tls.https_redirect` | Missing HTTP to HTTPS Redirect | 6.9 | [CWE-319](https://cwe.mitre.org/data/definitions/319.html) | API8:2023 |
 | `tls.hsts` | Missing or Weak Strict-Transport-Security Header | 0 (informational) | [CWE-16](https://cwe.mitre.org/data/definitions/16.html) | API8:2023 |
 
 ## `tls.protocol_version`
 
-Tests whether the proxy still accepts deprecated TLS versions (TLS 1.0/1.1) alongside modern ones, by forcing a handshake at each deprecated version. Go's `crypto/tls` no longer implements SSLv3, so that version can't be probed directly — but a server still offering it would also offer TLS 1.0/1.1 in virtually every real deployment.
+Tests whether the proxy still accepts deprecated protocol versions alongside modern ones, by forcing a handshake at each deprecated version: TLS 1.0 and 1.1 through `crypto/tls`, and SSL 3.0 through a raw ClientHello since `crypto/tls` no longer implements it. Accepted versions are reported together as one observation, code `protocol.legacy_enabled`.
+
+Per-CVE findings (Heartbleed, DROWN, ROBOT) are not probed: they need exploit-specific handshakes, and every affected deployment also enables a legacy protocol or suite reported here.
 
 **Remediate:** disable TLS 1.0/1.1 (and SSLv3) in the proxy's TLS configuration; require TLS 1.2 or later.
 
 ## `tls.cipher_strength`
 
-Inspects the negotiated cipher suite for missing forward secrecy (non-ECDHE/DHE key exchange on TLS ≤ 1.2), and separately forces a handshake offering only known-weak cipher suites (RC4, 3DES, CBC-mode) to test whether the server still accepts them.
+Inspects the negotiated cipher suite for missing forward secrecy (non-ECDHE/DHE key exchange on TLS ≤ 1.2), and separately forces handshakes offering only weak cipher suites to test whether the server still accepts them: RC4, 3DES and NULL through a raw ClientHello, the other suites Go marks insecure (CBC mode with SHA-256) through `crypto/tls`. A raw handshake offering only DHE suites reads the Diffie-Hellman group size and flags a group below 2048 bits.
 
 **Remediate:** restrict the cipher suite list to modern AEAD suites with ECDHE key exchange (or rely on TLS 1.3, which is always forward-secret).
 
@@ -27,11 +29,27 @@ Inspects the negotiated cipher suite for missing forward secrecy (non-ECDHE/DHE 
 
 Inspects the leaf certificate presented during the TLS handshake:
 
-- **Chain trust** — independently verifies the presented chain against the system trust store and the request hostname.
-- **Expiry** — flags an expired certificate, and separately flags one expiring within 30 days.
+- **Chain trust** — independently verifies the presented chain against the system trust store, and tells a self-signed certificate apart from an untrusted chain.
+- **Hostname** — flags a certificate not valid for the hostname of the target URL.
+- **Expiry** — flags an expired or not yet valid certificate, and separately one expiring within 30 days.
 - **OCSP stapling** — flags a handshake with no stapled OCSP response.
 
 **Remediate:** use a certificate from a trusted CA matching the hostname, automate renewal well before expiry, and enable OCSP stapling.
+
+## Observation codes
+
+Each kind of finding carries a stable code in `Metadata["code"]`, so an embedder maps it to its own check ID without matching titles:
+
+| Check | Codes |
+| --- | --- |
+| `tls.protocol_version` | `protocol.legacy_enabled` |
+| `tls.cipher_strength` | `cipher.no_forward_secrecy`, `cipher.rc4`, `cipher.3des`, `cipher.null`, `cipher.weak_suite`, `cipher.weak_dh` |
+| `tls.certificate` | `certificate.untrusted_chain`, `certificate.self_signed`, `certificate.hostname_mismatch`, `certificate.expired`, `certificate.not_yet_valid`, `certificate.expires_soon`, `certificate.ocsp_not_stapled` |
+| `tls.https_redirect` | `https_redirect.not_redirected`, `https_redirect.not_https` |
+
+## Skipped targets
+
+The TLS checks share one handshake, `probe.tls_info`, whose result (`probebase.TLSInfo`) is exported for other scanners. When it fails, they are skipped with the reason given by `TLSInfo.SkipReason`: a plain-HTTP target URL, a port that does not speak TLS, or a closed or unreachable port.
 
 ## `tls.https_redirect`
 

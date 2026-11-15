@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"net"
 	"net/url"
 	"time"
@@ -32,6 +33,36 @@ type TLSInfo struct {
 	// finding for checks/tls/certificate, not a probe failure.
 	VerifyErr error
 	Err       error
+}
+
+const MetadataCode = "code"
+
+var ErrPlainHTTPTarget = errors.New("target URL uses plain HTTP")
+
+// SkipReason explains why the TLS checks cannot inspect the target, or
+// returns "" when the handshake succeeded.
+func (info *TLSInfo) SkipReason() string {
+	if info == nil {
+		return "target TLS handshake did not run — see probe.tls_info"
+	}
+	if info.Err == nil {
+		if info.ConnState == nil {
+			return "target TLS handshake produced no connection state"
+		}
+		return ""
+	}
+	var recordErr tls.RecordHeaderError
+	var opErr *net.OpError
+	switch {
+	case errors.Is(info.Err, ErrPlainHTTPTarget):
+		return "target URL uses plain HTTP, no TLS to inspect"
+	case errors.As(info.Err, &recordErr):
+		return "target port does not speak TLS (plain HTTP)"
+	case errors.As(info.Err, &opErr) && opErr.Op == "dial":
+		return "target port is closed or unreachable"
+	default:
+		return "target TLS handshake failed: " + info.Err.Error()
+	}
 }
 
 // TargetHost extracts host:port (port defaulting to 443) from a target URL.
@@ -116,6 +147,10 @@ var TLSInfoCheck = checkdef.NewCheck(
 	func(ctx context.Context, target harnessx.Target, _ harnessx.ResultStore) (harnessx.Result, error) {
 		sctx := scanctx.TargetContext(target)
 
+		if u, err := url.Parse(target.URL); err == nil && u.Scheme == "http" {
+			return harnessx.DataResult(&TLSInfo{Err: ErrPlainHTTPTarget}), nil
+		}
+
 		host, err := TargetHost(target.URL)
 		if err != nil {
 			return harnessx.DataResult(&TLSInfo{Err: err}), nil
@@ -139,4 +174,13 @@ var TLSInfoCheck = checkdef.NewCheck(
 // Info reads the shared TLSInfo off store, populated by TLSInfoCheck.
 func Info(store harnessx.ResultStore) (*TLSInfo, bool) {
 	return harnessx.GetData[*TLSInfo](store, TLSInfoCheckID)
+}
+
+// SkipUnlessHandshake skips a TLS check whose target handshake failed,
+// with the reason given by TLSInfo.SkipReason.
+func SkipUnlessHandshake() harnessx.SkipDecision {
+	return harnessx.SkipWhen(func(_ context.Context, _ harnessx.Target, store harnessx.ResultStore) string {
+		info, _ := Info(store)
+		return info.SkipReason()
+	})
 }

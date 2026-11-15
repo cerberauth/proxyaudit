@@ -73,7 +73,7 @@ func TestCertificate_UntrustedChain_Flagged(t *testing.T) {
 
 	obs := runEngine(t, target, certificate.Check)
 	require.NotEmpty(t, obs)
-	assert.Contains(t, obs[0].Title, "chain does not verify")
+	assert.Equal(t, certificate.CodeSelfSigned, obs[0].Metadata["code"])
 }
 
 func TestCipherStrength_ModernServer_HasForwardSecrecy(t *testing.T) {
