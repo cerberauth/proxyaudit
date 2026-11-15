@@ -4,7 +4,7 @@ go 1.27.0
 
 require (
 	github.com/cerberauth/cache-detective v0.0.0-20260917215736-01100a70209b
-	github.com/cerberauth/harnessx v0.5.0
+	github.com/cerberauth/harnessx v0.5.1-0.20261115193329-811e1dec1662
 	github.com/cerberauth/x v0.0.0-20261107180155-4a52fa2eefe1
 	github.com/getargvio/argvio-go v0.6.0
 	github.com/spf13/cobra v1.10.2

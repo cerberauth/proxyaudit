@@ -8,6 +8,6 @@ tags:
 depends_on:
   - "probe.tls_info"
 cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N"
-cvss_score: 4.8
+cvss_score: 6.9
 cwe_id: "CWE-327"
 owasp: "API8:2023"
