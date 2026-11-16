@@ -94,7 +94,8 @@ See the [checks reference](https://www.cerberauth.com/docs/proxyaudit/checks/)
 for the full list with CWE/OWASP mapping and remediation.
 
 - **TLS/Transport**: protocol version, cipher strength/forward secrecy,
-  certificate chain/expiry/hostname/OCSP stapling, HTTP→HTTPS redirect, HSTS.
+  certificate chain/expiry/hostname/OCSP stapling, Heartbleed, DROWN, ROBOT,
+  HTTP→HTTPS redirect, HSTS.
 - **HTTP Security Headers**: CSP, X-Frame-Options/frame-ancestors,
   X-Content-Type-Options, Referrer-Policy, Permissions-Policy, Server/
   X-Powered-By banner disclosure, cookie flags, CORS misconfiguration
