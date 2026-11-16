@@ -21,9 +21,9 @@ template, which escalates to file read and environment-variable disclosure.
 
 | Check ID | Title | CVSS 4.0 | CWE | OWASP |
 | --- | --- | --- | --- | --- |
-| `templateinjection.header_ssti` | Request Header Rendered as a Server-Side Template | 9.3 | [CWE-1336](https://cwe.mitre.org/data/definitions/1336.html) | API8:2023 |
+| `proxy.templateinjection.header_ssti` | Request Header Rendered as a Server-Side Template | 9.3 | [CWE-1336](https://cwe.mitre.org/data/definitions/1336.html) | API8:2023 |
 
-## `templateinjection.header_ssti`
+## `proxy.templateinjection.header_ssti`
 
 Injects a benign arithmetic expression (`7919*8039`, product `63660841`) in
 several template-engine syntaxes — `{{ }}` (Jinja2/Twig/Nunjucks),

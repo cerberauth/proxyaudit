@@ -13,10 +13,7 @@ import (
 	methodbypass "github.com/cerberauth/proxyaudit/proxy/checks/accesscontrol/method_bypass"
 	nginxaliastraversal "github.com/cerberauth/proxyaudit/proxy/checks/accesscontrol/nginx_alias_traversal"
 	pathbypass "github.com/cerberauth/proxyaudit/proxy/checks/accesscontrol/path_bypass"
-	authenticatedcaching "github.com/cerberauth/proxyaudit/proxy/checks/caching/authenticated_caching"
-	cachedeception "github.com/cerberauth/proxyaudit/proxy/checks/caching/cache_deception"
-	cachepoisoning "github.com/cerberauth/proxyaudit/proxy/checks/caching/cache_poisoning"
-	varyconsistency "github.com/cerberauth/proxyaudit/proxy/checks/caching/vary_consistency"
+	"github.com/cerberauth/proxyaudit/proxy/checks/caching"
 	configexposure "github.com/cerberauth/proxyaudit/proxy/checks/disclosure/config_exposure"
 	directorylisting "github.com/cerberauth/proxyaudit/proxy/checks/disclosure/directory_listing"
 	exposedmanagement "github.com/cerberauth/proxyaudit/proxy/checks/disclosure/exposed_management"
@@ -105,12 +102,6 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		methodbypass.Check,
 		nginxaliastraversal.Check,
 
-		// Caching Behavior & Web Cache Deception.
-		authenticatedcaching.Check,
-		varyconsistency.Check,
-		cachepoisoning.Check,
-		cachedeception.Check,
-
 		// WAF / Filtering Behavior Validation.
 		baselinepayloads.Check,
 		encodingbypass.Check,
@@ -133,6 +124,9 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		// HTTP/2 & HTTP/3 Protocol-Specific (Agg-tier, --aggressive).
 		h2authoritytrust.Check,
 	}
+
+	// Caching Behavior & Web Cache Deception, from cache-detective's pack.
+	checks = append(checks, caching.Checks()...)
 
 	defs := map[harnessx.CheckID]checkdef.CheckDef{
 		protocolversion.Check.ID: protocolversion.Def,
@@ -168,11 +162,6 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		methodbypass.Check.ID:        methodbypass.Def,
 		nginxaliastraversal.Check.ID: nginxaliastraversal.Def,
 
-		authenticatedcaching.Check.ID: authenticatedcaching.Def,
-		varyconsistency.Check.ID:      varyconsistency.Def,
-		cachepoisoning.Check.ID:       cachepoisoning.Def,
-		cachedeception.Check.ID:       cachedeception.Def,
-
 		baselinepayloads.Check.ID:       baselinepayloads.Def,
 		encodingbypass.Check.ID:         encodingbypass.Def,
 		contenttypeconsistency.Check.ID: contenttypeconsistency.Def,
@@ -189,6 +178,10 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		oversizedheader.Check.ID:   oversizedheader.Def,
 
 		h2authoritytrust.Check.ID: h2authoritytrust.Def,
+	}
+
+	for _, def := range caching.Defs {
+		defs[harnessx.CheckID(def.ID)] = def
 	}
 
 	return checks, defs

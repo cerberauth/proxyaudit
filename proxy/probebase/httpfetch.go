@@ -36,7 +36,7 @@ var SkipUnlessFetched = harnessx.SkipWhen(func(_ context.Context, _ harnessx.Tar
 // HTTPFetchCheckID is the shared check every checks/headers and
 // checks/tls (HSTS, redirect) check depends on, so the target is only
 // fetched once per scan.
-const HTTPFetchCheckID harnessx.CheckID = "probe.http_fetch"
+const HTTPFetchCheckID harnessx.CheckID = "proxy.probe.http_fetch"
 
 // MaxBodyBytes caps how much of a response body proxy buffers in memory.
 const MaxBodyBytes = 1 << 20 // 1 MiB
@@ -54,7 +54,7 @@ type FetchResult struct {
 // target. It does not itself report a finding — it only exists to make the
 // request once and expose the response via ResultStore.
 var HTTPFetchCheck = checkdef.NewCheck(
-	checkdef.CheckDef{ID: string(HTTPFetchCheckID), Name: "HTTP Fetch"},
+	checkdef.CheckDef{ID: string(HTTPFetchCheckID), Name: "HTTP Fetch", Internal: true},
 	func(ctx context.Context, target harnessx.Target, _ harnessx.ResultStore) (harnessx.Result, error) {
 		sctx := scanctx.TargetContext(target)
 

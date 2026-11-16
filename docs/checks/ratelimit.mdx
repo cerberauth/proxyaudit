@@ -18,11 +18,11 @@ properties with small, bounded probes.
 
 | Check ID | Title | CVSS 4.0 | CWE | OWASP |
 | --- | --- | --- | --- | --- |
-| `ratelimit.missing_throttling` | No Per-Client Request Throttling at the Proxy | 5.3 | [CWE-770](https://cwe.mitre.org/data/definitions/770.html) | API4:2023 |
-| `ratelimit.spoofed_ip_bypass` | Rate Limit Bypassed via Spoofed Client-IP Header | 6.9 | [CWE-770](https://cwe.mitre.org/data/definitions/770.html) | API4:2023 |
-| `ratelimit.oversized_header` | Oversized Request Headers Accepted Without a Limit | 5.3 | [CWE-770](https://cwe.mitre.org/data/definitions/770.html) | API4:2023 |
+| `proxy.ratelimit.missing_throttling` | No Per-Client Request Throttling at the Proxy | 5.3 | [CWE-770](https://cwe.mitre.org/data/definitions/770.html) | API4:2023 |
+| `proxy.ratelimit.spoofed_ip_bypass` | Rate Limit Bypassed via Spoofed Client-IP Header | 6.9 | [CWE-770](https://cwe.mitre.org/data/definitions/770.html) | API4:2023 |
+| `proxy.ratelimit.oversized_header` | Oversized Request Headers Accepted Without a Limit | 5.3 | [CWE-770](https://cwe.mitre.org/data/definitions/770.html) | API4:2023 |
 
-## `ratelimit.missing_throttling`
+## `proxy.ratelimit.missing_throttling`
 
 Sends a small burst from one client and reports when none of the requests
 is throttled. Informational-to-low: throttling at the backend or an
@@ -31,7 +31,7 @@ external layer is not visible to a single-client burst.
 **Remediate:** enforce per-client request rate limiting at the proxy
 (e.g. nginx `limit_req`, an API gateway plan).
 
-## `ratelimit.spoofed_ip_bypass`
+## `proxy.ratelimit.spoofed_ip_bypass`
 
 For a proxy that does throttle, drives it into throttling, confirms a plain
 request is still throttled, then flips the response back to success by
@@ -43,7 +43,7 @@ confirmed bypass; the check skips when no throttling is observed.
 trust a client-IP header when it arrives from a known, trusted upstream
 (see the Client-IP & Header Trust Boundary checks).
 
-## `ratelimit.oversized_header`
+## `proxy.ratelimit.oversized_header`
 
 Sends one request with a single 128 KiB header and flags acceptance rather
 than a 431/400/413 rejection — a proxy with no header-size cap lets a client
