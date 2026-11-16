@@ -47,9 +47,12 @@ import (
 	headerssti "github.com/cerberauth/proxyaudit/proxy/checks/templateinjection/header_ssti"
 	"github.com/cerberauth/proxyaudit/proxy/checks/tls/certificate"
 	cipherstrength "github.com/cerberauth/proxyaudit/proxy/checks/tls/cipher_strength"
+	"github.com/cerberauth/proxyaudit/proxy/checks/tls/drown"
+	"github.com/cerberauth/proxyaudit/proxy/checks/tls/heartbleed"
 	"github.com/cerberauth/proxyaudit/proxy/checks/tls/hsts"
 	httpsredirect "github.com/cerberauth/proxyaudit/proxy/checks/tls/https_redirect"
 	protocolversion "github.com/cerberauth/proxyaudit/proxy/checks/tls/protocol_version"
+	"github.com/cerberauth/proxyaudit/proxy/checks/tls/robot"
 	baselinepayloads "github.com/cerberauth/proxyaudit/proxy/checks/waf/baseline_payloads"
 	contenttypeconsistency "github.com/cerberauth/proxyaudit/proxy/checks/waf/content_type_consistency"
 	encodingbypass "github.com/cerberauth/proxyaudit/proxy/checks/waf/encoding_bypass"
@@ -73,6 +76,9 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		certificate.Check,
 		httpsredirect.Check,
 		hsts.Check,
+		heartbleed.Check,
+		drown.Check,
+		robot.Check,
 
 		// HTTP Security Headers.
 		csp.Check,
@@ -140,6 +146,9 @@ func AllChecks() ([]harnessx.Check, map[harnessx.CheckID]checkdef.CheckDef) {
 		certificate.Check.ID:     certificate.Def,
 		httpsredirect.Check.ID:   httpsredirect.Def,
 		hsts.Check.ID:            hsts.Def,
+		heartbleed.Check.ID:      heartbleed.Def,
+		drown.Check.ID:           drown.Def,
+		robot.Check.ID:           robot.Def,
 
 		csp.Check.ID:                csp.Def,
 		frameoptions.Check.ID:       frameoptions.Def,
