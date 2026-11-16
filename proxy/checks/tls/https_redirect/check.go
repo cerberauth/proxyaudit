@@ -11,6 +11,7 @@ import (
 
 	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/harnessx/checkdef"
+	"github.com/cerberauth/proxyaudit/proxy/probebase"
 	"github.com/cerberauth/proxyaudit/proxy/scanctx"
 )
 
@@ -18,6 +19,11 @@ import (
 var checkYAML []byte
 
 var Def = checkdef.MustParseCheckDefYAML("https_redirect", checkYAML)
+
+const (
+	CodeNotRedirected = "https_redirect.not_redirected"
+	CodeNotHTTPS      = "https_redirect.not_https"
+)
 
 var Check = checkdef.NewCheck(Def, func(ctx context.Context, target harnessx.Target, _ harnessx.ResultStore) (harnessx.Result, error) {
 	sctx := scanctx.TargetContext(target)
@@ -54,11 +60,16 @@ var Check = checkdef.NewCheck(Def, func(ctx context.Context, target harnessx.Tar
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode < 300 || resp.StatusCode >= 400 {
+	if resp.StatusCode >= 400 {
+		return harnessx.Result{}, nil
+	}
+
+	if resp.StatusCode < 300 {
 		return harnessx.Result{Observations: []harnessx.Observation{{
 			Title:       "Plain HTTP request is not redirected to HTTPS",
 			Description: "A plain-HTTP request to the target received a non-redirect response instead of being redirected to HTTPS, allowing traffic to be sent (and intercepted) unencrypted.",
 			Evidence:    fmt.Sprintf("GET %s -> %d", httpURL.String(), resp.StatusCode),
+			Metadata:    map[string]string{probebase.MetadataCode: CodeNotRedirected},
 		}}}, nil
 	}
 
@@ -69,6 +80,7 @@ var Check = checkdef.NewCheck(Def, func(ctx context.Context, target harnessx.Tar
 			Title:       "HTTP redirect does not point to HTTPS",
 			Description: "A plain-HTTP request to the target was redirected, but not to an https:// URL.",
 			Evidence:    "Location: " + location,
+			Metadata:    map[string]string{probebase.MetadataCode: CodeNotHTTPS},
 		}}}, nil
 	}
 

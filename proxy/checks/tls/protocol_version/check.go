@@ -1,14 +1,13 @@
 // Package protocolversion checks whether the target still accepts
-// deprecated TLS protocol versions (TLS 1.0/1.1) — Go's crypto/tls no
-// longer implements SSLv3, so that version can't be probed directly, but
-// a server still offering it would also offer TLS 1.0/1.1 in virtually
-// every real deployment, which this check does detect.
+// deprecated protocol versions: SSL 3.0 through a raw ClientHello, and
+// TLS 1.0/1.1 through crypto/tls.
 package protocolversion
 
 import (
 	"context"
 	"crypto/tls"
 	_ "embed"
+	"strings"
 
 	"github.com/cerberauth/harnessx"
 	"github.com/cerberauth/harnessx/checkdef"
@@ -32,6 +31,10 @@ var deprecatedVersions = []struct {
 	{"TLS 1.1", tls.VersionTLS11},
 }
 
+const CodeLegacyEnabled = "protocol.legacy_enabled"
+
+var probeLegacyHello = probebase.ProbeLegacyHello
+
 var Check = checkdef.NewCheck(Def, func(ctx context.Context, target harnessx.Target, store harnessx.ResultStore) (harnessx.Result, error) {
 	sctx := scanctx.TargetContext(target)
 
@@ -40,42 +43,24 @@ var Check = checkdef.NewCheck(Def, func(ctx context.Context, target harnessx.Tar
 		return harnessx.Result{Err: err}, nil
 	}
 
-	var observations []harnessx.Observation
+	var accepted []string
+	if hello, err := probeLegacyHello(ctx, host, probebase.VersionSSL30, probebase.SSL3Suites); err == nil && hello.Version == probebase.VersionSSL30 {
+		accepted = append(accepted, "SSL 3.0")
+	}
 	for _, v := range deprecatedVersions {
-		state, err := probebase.DialTLS(ctx, host, sctx, v.version, v.version)
-		if err != nil {
-			// Handshake failure at this forced version means the server
-			// rejected it — the desired, secure outcome.
-			continue
+		if _, err := probebase.DialTLS(ctx, host, sctx, v.version, v.version, probebase.AllCipherSuites()...); err == nil {
+			accepted = append(accepted, v.name)
 		}
-		observations = append(observations, harnessx.Observation{
-			Title:       "Deprecated TLS version accepted: " + v.name,
-			Description: "The target completed a TLS handshake using " + v.name + ", a deprecated protocol version with known weaknesses.",
-			Evidence:    "negotiated version: " + tlsVersionName(state.Version),
-			Metadata:    map[string]string{"tls_version": v.name},
-		})
+	}
+	if len(accepted) == 0 {
+		return harnessx.Result{}, nil
 	}
 
-	return harnessx.Result{Observations: observations}, nil
-}, checkdef.WithSkip(harnessx.SkipWhen(func(_ context.Context, target harnessx.Target, store harnessx.ResultStore) string {
-	info, ok := probebase.Info(store)
-	if !ok || info.Err != nil {
-		return "target TLS handshake failed — see probe.tls_info"
-	}
-	return ""
-})))
-
-func tlsVersionName(v uint16) string {
-	switch v {
-	case tls.VersionTLS10:
-		return "TLS 1.0"
-	case tls.VersionTLS11:
-		return "TLS 1.1"
-	case tls.VersionTLS12:
-		return "TLS 1.2"
-	case tls.VersionTLS13:
-		return "TLS 1.3"
-	default:
-		return "unknown"
-	}
-}
+	versions := strings.Join(accepted, ", ")
+	return harnessx.Result{Observations: []harnessx.Observation{{
+		Title:       "Deprecated protocol versions accepted: " + versions,
+		Description: "The target completed a handshake using deprecated protocol versions with known weaknesses (POODLE, BEAST and the downgrade attacks they enable).",
+		Evidence:    "accepted versions: " + versions,
+		Metadata:    map[string]string{probebase.MetadataCode: CodeLegacyEnabled, "versions": versions},
+	}}}, nil
+}, checkdef.WithSkip(probebase.SkipUnlessHandshake()))

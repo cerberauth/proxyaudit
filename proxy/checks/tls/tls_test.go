@@ -73,7 +73,7 @@ func TestCertificate_UntrustedChain_Flagged(t *testing.T) {
 
 	obs := runEngine(t, target, certificate.Check)
 	require.NotEmpty(t, obs)
-	assert.Contains(t, obs[0].Title, "chain does not verify")
+	assert.Equal(t, certificate.CodeSelfSigned, obs[0].Metadata["code"])
 }
 
 func TestCipherStrength_ModernServer_HasForwardSecrecy(t *testing.T) {
@@ -116,6 +116,21 @@ func TestHTTPSRedirect_NoRedirect_Flagged(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, summary.Observations)
 	assert.Contains(t, summary.Observations[0].Title, "not redirected to HTTPS")
+}
+
+func TestHTTPSRedirect_PlainHTTPRejected_NoFindings(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "Client sent an HTTP request to an HTTPS server.", http.StatusBadRequest)
+	}))
+	defer srv.Close()
+
+	httpsURL := "https" + srv.URL[len("http"):]
+	target := scanctx.NewTarget(httpsURL, &scanctx.ScanContext{HTTPClient: srv.Client()})
+
+	engine := harnessx.New(harnessx.WithChecks(httpsredirect.Check))
+	summary, err := engine.Run(context.Background(), target)
+	require.NoError(t, err)
+	assert.Empty(t, summary.Observations)
 }
 
 func TestHTTPSRedirect_RedirectsToHTTPS_NoFindings(t *testing.T) {
