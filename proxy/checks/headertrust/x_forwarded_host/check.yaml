@@ -1,4 +1,4 @@
-id: "headertrust.x_forwarded_host"
+id: "proxy.headertrust.x_forwarded_host"
 name: "X-Forwarded-Host Value Trusted"
 description: "Sends a spoofed X-Forwarded-Host value and tests whether it is reflected back in the response (e.g. in a redirect Location or canonical link), indicating host-header-poisoning-style trust."
 link: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host"

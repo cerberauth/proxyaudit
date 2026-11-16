@@ -28,4 +28,4 @@ Severity is derived from each check's [CVSS 4.0](https://www.first.org/cvss/v4-0
 
 ## `--aggressive`
 
-The `--aggressive` flag threads through to every check via `ScanContext.Aggressive`. Most checks are read-only and run regardless; the `caching.cache_poisoning` and `caching.cache_deception` checks are Agg-tier and skip unless `--aggressive` is set, since a positive result means the check actually planted content in a shared cache other users may be served.
+The `--aggressive` flag threads through to every check via `ScanContext.Aggressive`. Most checks are read-only and run regardless; the `proxy.caching.cache_poisoning` and `proxy.caching.cache_deception` checks are Agg-tier and skip unless `--aggressive` is set, since a positive result means the check actually planted content in a shared cache other users may be served.

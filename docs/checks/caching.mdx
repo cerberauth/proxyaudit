@@ -5,7 +5,7 @@ description: Authenticated-response caching, cache-key/Vary consistency, unkeyed
 
 import { Aside } from '@/components/docs';
 
-These checks build on the same RFC 9111 (HTTP Caching) semantics as [`cache-detective`](https://github.com/cerberauth/cache-detective) — `caching.authenticated_caching` and `caching.cache_deception` reuse its `cache/checks/cacheability` cacheability determination directly, and `caching.vary_consistency` reuses its `cache/cdn` cache-status detection.
+These checks are [`cache-detective`](https://github.com/cerberauth/cache-detective)'s own checks, embedded with `harnessx/embed` and run against the scanned URL: `proxy.caching.authenticated_caching` runs `cache.authenticated_cacheable`, `proxy.caching.vary_consistency` runs `cache.vary_key`, `proxy.caching.cache_poisoning` runs `cache.unkeyed_header_injection` and `proxy.caching.cache_deception` runs `cache.cache_deception`.
 
 <Aside type="tip">
   Results here are inherently probabilistic (per-request/per-instance variance in front of a real CDN) — treat a lack of findings as "nothing observed in this pass", not a definitive pass.
@@ -13,24 +13,24 @@ These checks build on the same RFC 9111 (HTTP Caching) semantics as [`cache-dete
 
 | Check ID | Title | CVSS 4.0 | CWE | OWASP |
 | --- | --- | --- | --- | --- |
-| `caching.authenticated_caching` | Authenticated Response Marked Cacheable | 8.7 | [CWE-524](https://cwe.mitre.org/data/definitions/524.html) | API1:2023 |
-| `caching.vary_consistency` | Undeclared Cache-Key Input | 5.3 | [CWE-444](https://cwe.mitre.org/data/definitions/444.html) | API8:2023 |
-| `caching.cache_poisoning` | Cache Poisoning via Unkeyed Header | 9.3 | [CWE-444](https://cwe.mitre.org/data/definitions/444.html) | API8:2023 |
-| `caching.cache_deception` | Web Cache Deception via Path Confusion | 8.1 | [CWE-524](https://cwe.mitre.org/data/definitions/524.html) | API1:2023 |
+| `proxy.caching.authenticated_caching` | Authenticated Response Marked Cacheable | 8.7 | [CWE-524](https://cwe.mitre.org/data/definitions/524.html) | API1:2023 |
+| `proxy.caching.vary_consistency` | Undeclared Cache-Key Input | 5.3 | [CWE-444](https://cwe.mitre.org/data/definitions/444.html) | API8:2023 |
+| `proxy.caching.cache_poisoning` | Cache Poisoning via Unkeyed Header | 9.3 | [CWE-444](https://cwe.mitre.org/data/definitions/444.html) | API8:2023 |
+| `proxy.caching.cache_deception` | Web Cache Deception via Path Confusion | 8.1 | [CWE-524](https://cwe.mitre.org/data/definitions/524.html) | API1:2023 |
 
-## `caching.authenticated_caching`
+## `proxy.caching.authenticated_caching`
 
 Sends a request carrying credentials (a bearer token and a cookie) and checks whether the response is cacheable per RFC 9111 §3.5 without one of that section's opt-in directives (`must-revalidate`, `public`, `s-maxage`) — a shared cache/CDN in front of the origin isn't supposed to store a response to a request carrying `Authorization` otherwise. Severity is compounded in the finding description when the response body or `Set-Cookie` header carries PII, tokens, or session data (detected the same way as `cache-detective`'s equivalent check).
 
 **Remediate:** send `Cache-Control: private, no-store` (or an explicit opt-in if the response is genuinely safe to share) on every authenticated response.
 
-## `caching.vary_consistency`
+## `proxy.caching.vary_consistency`
 
 Probes whether `Accept-Encoding`, `Accept-Language`, and a custom header actually change the response, and compares that against the declared `Vary` header. An input that changes the response but isn't declared in `Vary` means a cache keyed only on the declared dimensions can serve one variant to a request that should have gotten another — a cache-poisoning surface whenever that input is attacker-controlled.
 
 **Remediate:** declare every request header the response actually varies on in `Vary`, or stop varying on it.
 
-## `caching.cache_poisoning`
+## `proxy.caching.cache_poisoning`
 
 <Aside type="caution">
   Requires `--aggressive`: a positive result has planted content in a shared cache that other users may be served.
@@ -40,7 +40,7 @@ Injects a marker via a header commonly left out of the cache key (`X-Forwarded-H
 
 **Remediate:** either strip these headers before they can influence the response, or include them in the cache key.
 
-## `caching.cache_deception`
+## `proxy.caching.cache_deception`
 
 <Aside type="caution">
   Requires `--aggressive`: a positive result has planted content in a shared cache under an attacker-chosen path.

@@ -1,4 +1,4 @@
-id: "headertrust.x_real_ip"
+id: "proxy.headertrust.x_real_ip"
 name: "X-Real-IP Value Reflected"
 description: "Sends a spoofed X-Real-IP value and tests whether it is reflected back in the response, indicating the proxy or origin trusts client-supplied client-IP headers."
 link: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Real-IP"

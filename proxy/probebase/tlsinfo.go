@@ -16,7 +16,7 @@ import (
 // TLSInfoCheckID is the shared check the checks/tls checks depend on for
 // the negotiated TLS connection state (default handshake, no forced
 // version).
-const TLSInfoCheckID harnessx.CheckID = "probe.tls_info"
+const TLSInfoCheckID harnessx.CheckID = "proxy.probe.tls_info"
 
 // DialTimeout bounds every TLS handshake proxy performs.
 const DialTimeout = 10 * time.Second
@@ -112,7 +112,7 @@ func VerifyCertificate(state *tls.ConnectionState, sctx *scanctx.ScanContext, ho
 // independent certificate chain/hostname verification. It does not itself
 // report a finding.
 var TLSInfoCheck = checkdef.NewCheck(
-	checkdef.CheckDef{ID: string(TLSInfoCheckID), Name: "TLS Info"},
+	checkdef.CheckDef{ID: string(TLSInfoCheckID), Name: "TLS Info", Internal: true},
 	func(ctx context.Context, target harnessx.Target, _ harnessx.ResultStore) (harnessx.Result, error) {
 		sctx := scanctx.TargetContext(target)
 

@@ -1,4 +1,4 @@
-id: "waf.baseline_payloads"
+id: "proxy.waf.baseline_payloads"
 name: "Baseline Attack Payloads Not Blocked"
 description: "Sends a baseline set of textbook SQL injection, cross-site scripting, and path traversal payloads and compares each response against a benign control request, flagging any payload that isn't blocked by a WAF or filtering layer — i.e. that is passed through to the backend."
 link: "https://owasp.org/www-project-modsecurity-core-rule-set/"

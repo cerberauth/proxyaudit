@@ -1,4 +1,4 @@
-id: "disclosure.config_exposure"
+id: "proxy.disclosure.config_exposure"
 name: "Config or Secrets File Exposed"
 description: "Probes a fixed list of config-adjacent paths (.env, nginx.conf, docker-compose.yml, .git/config, web.config) for content that looks like configuration or secrets."
 link: "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/11-Testing_for_Sensitive_Information_Sent_via_Unencrypted_Channels"
