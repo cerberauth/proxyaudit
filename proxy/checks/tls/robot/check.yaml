@@ -1,4 +1,4 @@
-id: "tls.robot"
+id: "proxy.tls.robot"
 name: "RSA Padding Oracle (ROBOT)"
 description: "Sends RSA key-exchange handshakes with well-formed and malformed PKCS#1 v1.5 padding and reports when the server answers them differently, a Bleichenbacher oracle that lets an attacker decrypt RSA key-exchange sessions."
 link: "https://robotattack.org/"
@@ -7,7 +7,7 @@ tags:
   - transport
   - cve
 depends_on:
-  - "probe.tls_info"
+  - "proxy.probe.tls_info"
 cvss_vector: "CVSS:4.0/AV:N/AC:H/AT:P/PR:N/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N"
 cvss_score: 8.2
 cwe_id: "CWE-203"

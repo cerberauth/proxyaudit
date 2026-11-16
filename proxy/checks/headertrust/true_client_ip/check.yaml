@@ -1,4 +1,4 @@
-id: "headertrust.true_client_ip"
+id: "proxy.headertrust.true_client_ip"
 name: "True-Client-IP Value Reflected"
 description: "Sends a spoofed True-Client-IP value (Akamai-style single-hop header) and tests whether it is reflected back in the response."
 link: "https://techdocs.akamai.com/property-mgr/docs/custom-behaviors-true-client-ip"

@@ -1,4 +1,4 @@
-id: "headers.cookie_flags"
+id: "proxy.headers.cookie_flags"
 name: "Cookie Missing Secure, HttpOnly, or SameSite"
 description: "Tests every Set-Cookie header in the response for the Secure, HttpOnly, and SameSite attributes."
 link: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie"
@@ -6,7 +6,7 @@ tags:
   - headers
   - cookies
 depends_on:
-  - "probe.http_fetch"
+  - "proxy.probe.http_fetch"
 cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N"
 cvss_score: 5.1
 cwe_id: "CWE-1004"

@@ -1,4 +1,4 @@
-id: "tls.drown"
+id: "proxy.tls.drown"
 name: "SSLv2 Enabled (DROWN, CVE-2016-0800)"
 description: "Sends an SSLv2 ClientHello and reports when the server answers with an SSLv2 ServerHello, which lets an attacker decrypt TLS sessions using the same RSA key."
 link: "https://drownattack.com/"
@@ -7,7 +7,7 @@ tags:
   - transport
   - cve
 depends_on:
-  - "probe.tls_info"
+  - "proxy.probe.tls_info"
 cvss_vector: "CVSS:4.0/AV:N/AC:H/AT:P/PR:N/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N"
 cvss_score: 8.2
 cwe_id: "CWE-327"

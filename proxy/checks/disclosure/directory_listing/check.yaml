@@ -1,4 +1,4 @@
-id: "disclosure.directory_listing"
+id: "proxy.disclosure.directory_listing"
 name: "Directory Listing Enabled"
 description: "Probes common static-asset paths for autoindex-style directory listings."
 link: "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/05-Authorization_Testing/01-Testing_Directory_Traversal_File_Include"

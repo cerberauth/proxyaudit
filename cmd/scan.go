@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/cerberauth/harnessx"
@@ -84,6 +85,8 @@ Use only against systems you own or have explicit written permission to test.`,
 			}
 
 			checks, defs := proxy.AllChecks()
+			var fetchErr error
+			recordFetchErr(checks, &fetchErr)
 
 			reportxReporter := harnessreport.New(ctx, harnessreport.Config{
 				ToolName:        name,
@@ -120,7 +123,7 @@ Use only against systems you own or have explicit written permission to test.`,
 			// couldn't be reached at all — every dependent check then
 			// skips rather than erroring, which would otherwise look
 			// exactly like "reached the target, found nothing".
-			if fetchErr := sharedFetchErr(summary); fetchErr != nil {
+			if fetchErr != nil {
 				return &RuntimeError{err: fmt.Errorf("connecting to target: %w", fetchErr)}
 			}
 
@@ -139,21 +142,25 @@ Use only against systems you own or have explicit written permission to test.`,
 	return scanCmd
 }
 
-// sharedFetchErr returns probe.http_fetch's underlying error, if any, by
-// scanning summary.Results — the shared fetch stores its error on Result.Data
-// rather than Result.Err (so dependent checks can Skip cleanly instead of
-// erroring), which would otherwise make total unreachability
-// indistinguishable from "reached the target, found nothing".
-func sharedFetchErr(summary harnessx.ScanSummary) error {
-	for _, r := range summary.Results {
-		if r.CheckID != probebase.HTTPFetchCheckID {
+// recordFetchErr makes the internal shared fetch report its underlying error
+// to dst: it stores it on Result.Data rather than Result.Err (so dependent
+// checks can Skip cleanly instead of erroring), which would otherwise make
+// total unreachability indistinguishable from "reached the target, found
+// nothing".
+func recordFetchErr(checks []harnessx.Check, dst *error) {
+	for i, c := range checks {
+		if c.ID != probebase.HTTPFetchCheckID {
 			continue
 		}
-		if fetched, ok := harnessx.DataAs[*probebase.FetchResult](r); ok && fetched.Err != nil {
-			return fetched.Err
+		run := c.Run
+		checks[i].Run = func(ctx context.Context, target harnessx.Target, store harnessx.ResultStore) (harnessx.Result, error) {
+			r, err := run(ctx, target, store)
+			if fetched, ok := harnessx.DataAs[*probebase.FetchResult](r); ok {
+				*dst = fetched.Err
+			}
+			return r, err
 		}
 	}
-	return nil
 }
 
 // RuntimeError marks an error as a runtime/connection failure (exit code 2)

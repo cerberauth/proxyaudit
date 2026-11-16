@@ -23,9 +23,9 @@ accepts it supplies the desync primitive.
 
 | Check ID | Title | CVSS 4.0 | CWE | OWASP |
 | --- | --- | --- | --- | --- |
-| `smuggling.ambiguous_framing` | Ambiguous Request Framing Accepted (Smuggling Precondition) | 9.2 | [CWE-444](https://cwe.mitre.org/data/definitions/444.html) | API8:2023 |
+| `proxy.smuggling.ambiguous_framing` | Ambiguous Request Framing Accepted (Smuggling Precondition) | 9.2 | [CWE-444](https://cwe.mitre.org/data/definitions/444.html) | API8:2023 |
 
-## `smuggling.ambiguous_framing`
+## `proxy.smuggling.ambiguous_framing`
 
 Sends four RFC-violating framings and flags any the proxy answers with a
 2xx/3xx instead of rejecting (4xx/5xx or a dropped connection):
