@@ -1,6 +1,6 @@
 id: "tls.cipher_strength"
 name: "Weak Cipher Suite or Missing Forward Secrecy"
-description: "Inspects the negotiated cipher suite for known-weak ciphers (RC4, 3DES, CBC-mode) and for support of forward secrecy (ECDHE/DHE key exchange)."
+description: "Inspects the negotiated cipher suite for forward secrecy and probes for weak cipher suites (RC4, 3DES, NULL, CBC-mode) and Diffie-Hellman groups below 2048 bits."
 link: "https://ciphersuite.info/"
 tags:
   - tls
@@ -8,6 +8,6 @@ tags:
 depends_on:
   - "probe.tls_info"
 cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N"
-cvss_score: 4.8
+cvss_score: 6.9
 cwe_id: "CWE-327"
 owasp: "API8:2023"
