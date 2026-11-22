@@ -78,7 +78,7 @@ Flags:
 ```
 
 Exit codes: `0` no findings, `1` findings present, `2` runtime/connection
-error — standard for CI usage. See the [GitHub Actions guide](https://www.cerberauth.com/docs/proxyaudit/github-actions/)
+error — standard for CI usage. See the [GitHub Actions guide](https://www.cerberauth.com/docs/proxyaudit/deployment/github-actions/)
 for CI examples.
 
 Every check is non-destructive and read-only by default (single or few
@@ -90,7 +90,7 @@ written permission to test.
 
 ## Checks (v0.1)
 
-See the [checks reference](https://www.cerberauth.com/docs/proxyaudit/checks/)
+See the [checks reference](https://www.cerberauth.com/docs/proxyaudit/reference/checks/)
 for the full list with CWE/OWASP mapping and remediation.
 
 - **TLS/Transport**: protocol version, cipher strength/forward secrecy,

@@ -1,11 +1,13 @@
 ---
-title: scan
+title: proxyaudit scan
 description: Scan a reverse proxy / API gateway for common misconfigurations.
+sidebar:
+  order: 2
 ---
 
 import { Aside } from '@/components/docs';
 
-Runs every [check](../../checks/) against the target URL: TLS/transport, HTTP security headers, client-IP/header trust boundaries, and information disclosure via exposed management interfaces.
+Runs every [check](../checks/) against the target URL: TLS/transport, HTTP security headers, client-IP/header trust boundaries, and information disclosure via exposed management interfaces.
 
 <Aside type="caution">
   Use only against systems you own or have explicit written permission to test.

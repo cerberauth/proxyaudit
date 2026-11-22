@@ -1,0 +1,33 @@
+---
+title: Checks
+description: Every check proxyaudit runs, grouped by category, with its CWE/OWASP mapping and severity.
+sidebar:
+  order: 1
+---
+
+import { Card, CardGrid, LinkCard } from '@/components/docs';
+
+`proxyaudit scan` runs every check below against the target in a single pass. Each check is non-destructive and read-only (a single or a few requests, no brute-forcing or state mutation), and reports zero or more findings with a stable ID, CVSS score, CWE, and OWASP API Security Top 10 mapping.
+
+<CardGrid>
+  <LinkCard title="TLS" description="Protocol version, cipher strength, certificate, HTTPS redirect, HSTS." href="./tls/" />
+  <LinkCard title="HTTP security headers" description="CSP, frame options, content-type options, referrer/permissions policy, banner disclosure, cookies, CORS." href="./security-headers/" />
+  <LinkCard title="Client IP and header trust" description="X-Forwarded-For, X-Real-IP, True-Client-IP, X-Forwarded-Host, Host header injection, virtual-host confusion, Forwarded consistency." href="./header-trust/" />
+  <LinkCard title="Information disclosure" description="Verbose errors, exposed admin interfaces, directory listing, config/secrets exposure." href="./information-disclosure/" />
+  <LinkCard title="Access control bypass" description="Access control bypassed via path normalization, HTTP method, or nginx off-by-slash alias traversal." href="./access-control/" />
+  <LinkCard title="Cache deception" description="Authenticated-response caching, cache-key/Vary consistency, unkeyed-header cache poisoning, web cache deception." href="./cache-deception/" />
+  <LinkCard title="WAF filtering behavior" description="Baseline SQLi/XSS/path-traversal blocking, encoding-based bypasses, consistency across content types and encodings." href="./waf/" />
+  <LinkCard title="Template injection" description="Request headers reflected through a server-side template engine (e.g. Caddy templates). Aggressive suite." href="./template-injection/" />
+  <LinkCard title="Open proxy and SSRF" description="Absolute-URI forwarding to arbitrary external and internal hosts, including cloud metadata. Aggressive suite." href="./open-proxy/" />
+  <LinkCard title="Request smuggling and desync" description="Whether the proxy rejects ambiguous request framing (CL.TE / TE.CL / TE.TE). Aggressive suite." href="./request-smuggling/" />
+  <LinkCard title="Rate limiting and DoS resilience" description="Per-client throttling, spoofed client-IP bypass, oversized request headers. Aggressive suite." href="./rate-limit/" />
+  <LinkCard title="HTTP/2 and HTTP/3" description="HTTP/2 :authority pseudo-header trust / conversion. Aggressive suite." href="./http2-http3/" />
+</CardGrid>
+
+## Severity
+
+Severity is derived from each check's [CVSS 4.0](https://www.first.org/cvss/v4-0/) score. A check with `cvss_score: 0` (e.g. a missing `Referrer-Policy` header) is reported at informational severity — worth fixing, but not itself exploitable.
+
+## `--aggressive`
+
+The `--aggressive` flag threads through to every check via `ScanContext.Aggressive`. Most checks are read-only and run regardless; the `proxy.caching.cache_poisoning` and `proxy.caching.cache_deception` checks are Agg-tier and skip unless `--aggressive` is set, since a positive result means the check actually planted content in a shared cache other users may be served.
