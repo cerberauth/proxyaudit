@@ -1,6 +1,6 @@
 ---
 title: TLS / Transport
-description: Protocol version, cipher strength/forward secrecy, certificate chain/expiry/hostname, OCSP stapling, HTTPS redirect, and HSTS.
+description: Protocol version, cipher strength/forward secrecy, certificate chain/expiry/hostname, OCSP stapling, Heartbleed, DROWN, ROBOT, HTTPS redirect, and HSTS.
 ---
 
 | Check ID | Title | CVSS 4.0 | CWE | OWASP |
@@ -8,6 +8,9 @@ description: Protocol version, cipher strength/forward secrecy, certificate chai
 | `tls.protocol_version` | Weak TLS Protocol Version Accepted | 6.9 | [CWE-326](https://cwe.mitre.org/data/definitions/326.html) | API8:2023 |
 | `tls.cipher_strength` | Weak Cipher Suite or Missing Forward Secrecy | 6.9 | [CWE-327](https://cwe.mitre.org/data/definitions/327.html) | API8:2023 |
 | `tls.certificate` | Certificate Chain, Expiry, Hostname, or OCSP Stapling Issue | 6.9 | [CWE-295](https://cwe.mitre.org/data/definitions/295.html) | API8:2023 |
+| `tls.heartbleed` | Heartbleed (CVE-2014-0160) | 8.7 | [CWE-125](https://cwe.mitre.org/data/definitions/125.html) | API8:2023 |
+| `tls.drown` | SSLv2 Enabled (DROWN, CVE-2016-0800) | 8.2 | [CWE-327](https://cwe.mitre.org/data/definitions/327.html) | API8:2023 |
+| `tls.robot` | RSA Padding Oracle (ROBOT) | 8.2 | [CWE-203](https://cwe.mitre.org/data/definitions/203.html) | API8:2023 |
 | `tls.https_redirect` | Missing HTTP to HTTPS Redirect | 6.9 | [CWE-319](https://cwe.mitre.org/data/definitions/319.html) | API8:2023 |
 | `tls.hsts` | Missing or Weak Strict-Transport-Security Header | 0 (informational) | [CWE-16](https://cwe.mitre.org/data/definitions/16.html) | API8:2023 |
 
@@ -15,7 +18,7 @@ description: Protocol version, cipher strength/forward secrecy, certificate chai
 
 Tests whether the proxy still accepts deprecated protocol versions alongside modern ones, by forcing a handshake at each deprecated version: TLS 1.0 and 1.1 through `crypto/tls`, and SSL 3.0 through a raw ClientHello since `crypto/tls` no longer implements it. Accepted versions are reported together as one observation, code `protocol.legacy_enabled`.
 
-Per-CVE findings (Heartbleed, DROWN, ROBOT) are not probed: they need exploit-specific handshakes, and every affected deployment also enables a legacy protocol or suite reported here.
+Heartbleed, DROWN and ROBOT have their own checks below.
 
 **Remediate:** disable TLS 1.0/1.1 (and SSLv3) in the proxy's TLS configuration; require TLS 1.2 or later.
 
@@ -36,6 +39,24 @@ Inspects the leaf certificate presented during the TLS handshake:
 
 **Remediate:** use a certificate from a trusted CA matching the hostname, automate renewal well before expiry, and enable OCSP stapling.
 
+## `tls.heartbleed`
+
+Completes a raw TLS 1.2 handshake up to ServerHelloDone, advertising the heartbeat extension. When the server acknowledges the extension, sends one unencrypted heartbeat request declaring a 16-byte payload with none attached. A patched server discards it; a vulnerable one answers with 16 bytes of its process memory, which the probe discards without reading.
+
+**Remediate:** upgrade OpenSSL to 1.0.1g or later (or build with `-DOPENSSL_NO_HEARTBEATS`), then revoke and reissue the certificate and rotate session secrets.
+
+## `tls.drown`
+
+Sends an SSLv2 ClientHello and reports when the server answers with an SSLv2 ServerHello, with the number of cipher specs offered. Any SSLv2 support is reported, since OpenSSL servers negotiated disabled SSLv2 ciphers (CVE-2015-3197).
+
+**Remediate:** disable SSLv2 on every server sharing the certificate's RSA key, including mail and other non-HTTP services.
+
+## `tls.robot`
+
+Runs five RSA key-exchange handshakes in parallel, each sending a ClientKeyExchange whose premaster secret is encrypted with the server's public key and padded differently: correct PKCS#1 v1.5 padding, wrong prefix, misplaced zero separator, missing separator, and wrong protocol version. Each is followed by ChangeCipherSpec and an invalid Finished, then again without them. The server is reported when its responses (alert, connection close, reset or timeout) differ between variants in two consecutive rounds. Servers that do not negotiate RSA key exchange are not affected.
+
+**Remediate:** disable RSA key-exchange cipher suites (keep ECDHE only, or use TLS 1.3), or upgrade the TLS library to a version with a constant-time RSA decryption path.
+
 ## Observation codes
 
 Each kind of finding carries a stable code in `Metadata["code"]`, so an embedder maps it to its own check ID without matching titles:
@@ -45,6 +66,9 @@ Each kind of finding carries a stable code in `Metadata["code"]`, so an embedder
 | `tls.protocol_version` | `protocol.legacy_enabled` |
 | `tls.cipher_strength` | `cipher.no_forward_secrecy`, `cipher.rc4`, `cipher.3des`, `cipher.null`, `cipher.weak_suite`, `cipher.weak_dh` |
 | `tls.certificate` | `certificate.untrusted_chain`, `certificate.self_signed`, `certificate.hostname_mismatch`, `certificate.expired`, `certificate.not_yet_valid`, `certificate.expires_soon`, `certificate.ocsp_not_stapled` |
+| `tls.heartbleed` | `cve.heartbleed` |
+| `tls.drown` | `cve.drown` |
+| `tls.robot` | `cve.robot` |
 | `tls.https_redirect` | `https_redirect.not_redirected`, `https_redirect.not_https` |
 
 ## Skipped targets

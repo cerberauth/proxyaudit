@@ -67,6 +67,10 @@ func appendExtension(b []byte, extType uint16, data []byte) []byte {
 }
 
 func BuildClientHello(version uint16, suites []uint16, serverName string) ([]byte, error) {
+	return buildClientHello(version, suites, serverName, nil)
+}
+
+func buildClientHello(version uint16, suites []uint16, serverName string, extraExtensions []byte) ([]byte, error) {
 	random := make([]byte, 32)
 	if _, err := rand.Read(random); err != nil {
 		return nil, err
@@ -96,6 +100,7 @@ func BuildClientHello(version uint16, suites []uint16, serverName string) ([]byt
 			extensions = appendExtension(extensions, 0x000d, []byte{0x00, 0x0a, 0x04, 0x01, 0x05, 0x01, 0x06, 0x01, 0x02, 0x01, 0x04, 0x03})
 		}
 		extensions = appendExtension(extensions, 0xff01, []byte{0x00})
+		extensions = append(extensions, extraExtensions...)
 		body = appendUint16(body, uint16(len(extensions))) //nolint:gosec
 		body = append(body, extensions...)
 	}
@@ -114,31 +119,43 @@ func BuildClientHello(version uint16, suites []uint16, serverName string) ([]byt
 }
 
 func ProbeLegacyHello(ctx context.Context, host string, version uint16, suites []uint16) (*LegacyHello, error) {
-	hostname, _, err := net.SplitHostPort(host)
-	if err != nil {
-		hostname = host
-	}
-	hello, err := BuildClientHello(version, suites, hostname)
+	hello, err := BuildClientHello(version, suites, hostnameOf(host))
 	if err != nil {
 		return nil, err
 	}
 
-	dialer := &net.Dialer{Timeout: DialTimeout}
-	conn, err := dialer.DialContext(ctx, "tcp", host)
+	conn, err := dialRaw(ctx, host)
 	if err != nil {
 		return nil, err
 	}
 	defer conn.Close()
-	deadline := time.Now().Add(DialTimeout)
-	if d, ok := ctx.Deadline(); ok && d.Before(deadline) {
-		deadline = d
-	}
-	_ = conn.SetDeadline(deadline)
 
 	if _, err := conn.Write(hello); err != nil {
 		return nil, err
 	}
 	return ReadLegacyServerHello(conn)
+}
+
+func hostnameOf(host string) string {
+	hostname, _, err := net.SplitHostPort(host)
+	if err != nil {
+		return host
+	}
+	return hostname
+}
+
+func dialRaw(ctx context.Context, host string) (net.Conn, error) {
+	dialer := &net.Dialer{Timeout: DialTimeout}
+	conn, err := dialer.DialContext(ctx, "tcp", host)
+	if err != nil {
+		return nil, err
+	}
+	deadline := time.Now().Add(DialTimeout)
+	if d, ok := ctx.Deadline(); ok && d.Before(deadline) {
+		deadline = d
+	}
+	_ = conn.SetDeadline(deadline)
+	return conn, nil
 }
 
 func ReadLegacyServerHello(r io.Reader) (*LegacyHello, error) {

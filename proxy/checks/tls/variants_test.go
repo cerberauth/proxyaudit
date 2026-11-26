@@ -22,7 +22,10 @@ import (
 
 	"github.com/cerberauth/proxyaudit/proxy/checks/tls/certificate"
 	cipherstrength "github.com/cerberauth/proxyaudit/proxy/checks/tls/cipher_strength"
+	"github.com/cerberauth/proxyaudit/proxy/checks/tls/drown"
+	"github.com/cerberauth/proxyaudit/proxy/checks/tls/heartbleed"
 	protocolversion "github.com/cerberauth/proxyaudit/proxy/checks/tls/protocol_version"
+	"github.com/cerberauth/proxyaudit/proxy/checks/tls/robot"
 	"github.com/cerberauth/proxyaudit/proxy/probebase"
 	"github.com/cerberauth/proxyaudit/proxy/scanctx"
 )
@@ -168,7 +171,7 @@ func TestProtocolVersion_MinimumVersion(t *testing.T) {
 
 func skipReasons(t *testing.T, target harnessx.Target) map[harnessx.CheckID]string {
 	t.Helper()
-	engine := harnessx.New(harnessx.WithChecks(probebase.TLSInfoCheck, certificate.Check, protocolversion.Check, cipherstrength.Check))
+	engine := harnessx.New(harnessx.WithChecks(probebase.TLSInfoCheck, certificate.Check, protocolversion.Check, cipherstrength.Check, heartbleed.Check, drown.Check, robot.Check))
 	summary, err := engine.Run(context.Background(), target)
 	require.NoError(t, err)
 	reasons := map[harnessx.CheckID]string{}
@@ -201,8 +204,35 @@ func TestTLSChecks_SkipWithReason(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			reasons := skipReasons(t, scanctx.NewTarget(tc.url, nil))
 
-			for _, id := range []harnessx.CheckID{certificate.Check.ID, protocolversion.Check.ID, cipherstrength.Check.ID} {
+			for _, id := range []harnessx.CheckID{certificate.Check.ID, protocolversion.Check.ID, cipherstrength.Check.ID, heartbleed.Check.ID, drown.Check.ID, robot.Check.ID} {
 				assert.Equal(t, tc.reason, reasons[id], id)
+			}
+		})
+	}
+}
+
+func TestKnownCVEs_ModernServer_NoFindings(t *testing.T) {
+	testCases := []struct {
+		name   string
+		config *tls.Config
+	}{
+		{"default", nil},
+		{"rsa key exchange", &tls.Config{MaxVersion: tls.VersionTLS12, CipherSuites: []uint16{tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, tls.TLS_RSA_WITH_AES_128_CBC_SHA}}}, //nolint:gosec
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			srv := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {}))
+			srv.TLS = tc.config
+			srv.StartTLS()
+			t.Cleanup(srv.Close)
+
+			engine := harnessx.New(harnessx.WithChecks(probebase.TLSInfoCheck, heartbleed.Check, drown.Check, robot.Check))
+			summary, err := engine.Run(context.Background(), newTLSTarget(t, srv))
+
+			require.NoError(t, err)
+			assert.Empty(t, summary.Observations)
+			for _, result := range summary.Results {
+				assert.False(t, result.Skipped, result.CheckID)
 			}
 		})
 	}
