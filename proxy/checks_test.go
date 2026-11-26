@@ -21,7 +21,7 @@ func TestAllChecks_RegistersWithoutError(t *testing.T) {
 	// probes) must have a matching CheckDef, so proxyaudit's reporting
 	// layer has CVSS/CWE/OWASP for it.
 	for _, c := range checks {
-		if c.ID == "probe.http_fetch" || c.ID == "probe.tls_info" {
+		if c.Internal {
 			continue
 		}
 		_, ok := defs[c.ID]

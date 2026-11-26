@@ -1,4 +1,4 @@
-id: "waf.content_type_consistency"
+id: "proxy.waf.content_type_consistency"
 name: "Inconsistent WAF Filtering Across Content Types"
 description: "Delivers each baseline payload as a query parameter and in form, JSON, multipart, plain-text, and gzip-encoded request bodies, flagging a payload that is blocked in one delivery but passed in another — the filter only inspects the content types and encodings it parses, so an attacker can pick one it skips."
 link: "https://owasp.org/www-project-modsecurity-core-rule-set/"

@@ -1,4 +1,4 @@
-id: "tls.heartbleed"
+id: "proxy.tls.heartbleed"
 name: "Heartbleed (CVE-2014-0160)"
 description: "Sends a TLS heartbeat request declaring a longer payload than it carries and reports when the server answers it, leaking process memory such as private keys and session data."
 link: "https://heartbleed.com/"
@@ -7,7 +7,7 @@ tags:
   - transport
   - cve
 depends_on:
-  - "probe.tls_info"
+  - "proxy.probe.tls_info"
 cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N"
 cvss_score: 8.7
 cwe_id: "CWE-125"

@@ -13,46 +13,46 @@ These checks send a distinctive, non-routable ([RFC 5737](https://www.rfc-editor
 
 | Check ID | Title | CVSS 4.0 | CWE | OWASP |
 | --- | --- | --- | --- | --- |
-| `headertrust.x_forwarded_for` | X-Forwarded-For Value Reflected | 6.9 | [CWE-348](https://cwe.mitre.org/data/definitions/348.html) | API8:2023 |
-| `headertrust.x_real_ip` | X-Real-IP Value Reflected | 6.9 | [CWE-348](https://cwe.mitre.org/data/definitions/348.html) | API8:2023 |
-| `headertrust.true_client_ip` | True-Client-IP Value Reflected | 6.9 | [CWE-348](https://cwe.mitre.org/data/definitions/348.html) | API8:2023 |
-| `headertrust.x_forwarded_host` | X-Forwarded-Host Value Trusted | 6.9 | [CWE-350](https://cwe.mitre.org/data/definitions/350.html) | API8:2023 |
-| `headertrust.host_header_injection` | Host Header Value Trusted | 6.9 | [CWE-350](https://cwe.mitre.org/data/definitions/350.html) | API8:2023 |
-| `headertrust.vhost_confusion` | Virtual-Host Confusion via Crafted Host Header | 6.9 | [CWE-441](https://cwe.mitre.org/data/definitions/441.html) | API8:2023 |
-| `headertrust.forwarded_consistency` | Forwarded Header Inconsistent With Legacy Headers | 6.9 | [CWE-348](https://cwe.mitre.org/data/definitions/348.html) | API8:2023 |
-| `headertrust.acl_bypass` | IP-Based Access Control Bypassed via Spoofed Client-IP Header | 8.8 | [CWE-290](https://cwe.mitre.org/data/definitions/290.html) | API5:2023 |
+| `proxy.headertrust.x_forwarded_for` | X-Forwarded-For Value Reflected | 6.9 | [CWE-348](https://cwe.mitre.org/data/definitions/348.html) | API8:2023 |
+| `proxy.headertrust.x_real_ip` | X-Real-IP Value Reflected | 6.9 | [CWE-348](https://cwe.mitre.org/data/definitions/348.html) | API8:2023 |
+| `proxy.headertrust.true_client_ip` | True-Client-IP Value Reflected | 6.9 | [CWE-348](https://cwe.mitre.org/data/definitions/348.html) | API8:2023 |
+| `proxy.headertrust.x_forwarded_host` | X-Forwarded-Host Value Trusted | 6.9 | [CWE-350](https://cwe.mitre.org/data/definitions/350.html) | API8:2023 |
+| `proxy.headertrust.host_header_injection` | Host Header Value Trusted | 6.9 | [CWE-350](https://cwe.mitre.org/data/definitions/350.html) | API8:2023 |
+| `proxy.headertrust.vhost_confusion` | Virtual-Host Confusion via Crafted Host Header | 6.9 | [CWE-441](https://cwe.mitre.org/data/definitions/441.html) | API8:2023 |
+| `proxy.headertrust.forwarded_consistency` | Forwarded Header Inconsistent With Legacy Headers | 6.9 | [CWE-348](https://cwe.mitre.org/data/definitions/348.html) | API8:2023 |
+| `proxy.headertrust.acl_bypass` | IP-Based Access Control Bypassed via Spoofed Client-IP Header | 8.8 | [CWE-290](https://cwe.mitre.org/data/definitions/290.html) | API5:2023 |
 
-## `headertrust.x_forwarded_for` / `headertrust.x_real_ip` / `headertrust.true_client_ip`
+## `proxy.headertrust.x_forwarded_for` / `proxy.headertrust.x_real_ip` / `proxy.headertrust.true_client_ip`
 
 Sends a spoofed value in the respective client-IP header and checks for reflection, tested independently since a proxy may honor one and not the others.
 
 **Remediate:** at the edge, overwrite (not append/trust) these headers with the actual peer address, or strip them from inbound requests before forwarding.
 
-## `headertrust.x_forwarded_host`
+## `proxy.headertrust.x_forwarded_host`
 
 Sends a spoofed `X-Forwarded-Host` and checks for reflection — e.g. in a redirect `Location` header or a canonical link, which would indicate a host-header-poisoning-style trust issue (password reset links, cache poisoning).
 
 **Remediate:** don't use client-supplied `X-Forwarded-Host` to build absolute URLs unless it's set (and can't be overridden) by the proxy itself.
 
-## `headertrust.host_header_injection`
+## `proxy.headertrust.host_header_injection`
 
 Sends a spoofed `Host` header — the request line itself, not `X-Forwarded-Host` — and checks for reflection, e.g. in a generated password-reset link, redirect `Location` header, or canonical link. This catches origins that build absolute URLs straight from `Host` without going through a proxy-supplied `X-Forwarded-Host` at all.
 
 **Remediate:** build absolute URLs from a configured canonical hostname, never from the inbound `Host` header.
 
-## `headertrust.vhost_confusion`
+## `proxy.headertrust.vhost_confusion`
 
 Unlike the reflection-based checks above, this one sends a fixed list of common internal/admin hostnames (e.g. `internal-admin.local`) as the `Host` header and compares the response body against a baseline request made with the target's own host — a direct test of whether the client-supplied `Host` header can route the request to a different (potentially internal) backend, rather than just a signal that the header is trusted somewhere.
 
 **Remediate:** route on the SNI/listener the connection was actually received on (or an explicit virtual-host allowlist), not the client-supplied `Host` header.
 
-## `headertrust.forwarded_consistency`
+## `proxy.headertrust.forwarded_consistency`
 
 Sends distinct spoofed values in the RFC 7239 `Forwarded` header and the legacy `X-Forwarded-For` header in the same request, and checks whether both, one, or neither is reflected — inconsistent handling between the two formats means a request can pick whichever header favors it.
 
 **Remediate:** normalize to a single authoritative source (typically `Forwarded` per RFC 7239, or `X-Forwarded-For` if that's what the stack already relies on) and ignore the other.
 
-## `headertrust.acl_bypass`
+## `proxy.headertrust.acl_bypass`
 
 Unlike the reflection-based checks above, this one probes a fixed list of common internal/admin paths and compares the response with and without a spoofed loopback `X-Forwarded-For`/`X-Real-IP` header — a direct test of whether an IP-based access control (or a downstream rate limit keyed on the same header) can be bypassed, rather than just a signal that the header is trusted somewhere.
 
