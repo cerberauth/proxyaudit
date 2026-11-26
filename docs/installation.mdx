@@ -32,7 +32,7 @@ brew install cerberauth/tap/proxyaudit
 docker run --rm ghcr.io/cerberauth/proxyaudit scan https://proxy.example.com
 ```
 
-See the [Docker guide](./docker/) for networking and CI usage.
+See the [Docker guide](./deployment/docker/) for networking and CI usage.
 
   </TabItem>
   <TabItem label="From source">
@@ -71,7 +71,7 @@ proxyaudit --version
 
 ## GitHub Actions
 
-To use `proxyaudit` in a GitHub Actions workflow, see the [GitHub Actions guide](./github-actions/).
+To use `proxyaudit` in a GitHub Actions workflow, see the [GitHub Actions guide](./deployment/github-actions/).
 
 <Aside type="caution">
   Only run `proxyaudit scan` against systems you own or have explicit written permission to test.
