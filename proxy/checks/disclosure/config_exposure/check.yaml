@@ -6,6 +6,6 @@ tags:
   - disclosure
 depends_on: []
 cvss_vector: "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N"
-cvss_score: 8.2
+cvss_score: 8.7
 cwe_id: "CWE-538"
 owasp: "API9:2023"

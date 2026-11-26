@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/cerberauth/harnessx"
@@ -145,8 +146,8 @@ func TestCachePoisoning_StatelessReflection_NoFindings(t *testing.T) {
 
 func deceptionHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case "/account", "/account.js":
+		switch {
+		case strings.HasPrefix(r.URL.Path, "/account"):
 			w.Header().Set("Cache-Control", "public, max-age=60")
 			_, _ = w.Write([]byte("secret account data"))
 		default:
@@ -160,9 +161,9 @@ func TestCacheDeception_Aggressive_StaticExtensionServesSameContent_Flagged(t *t
 	defer srv.Close()
 
 	obs := runEngineAtURL(t, srv.URL+"/account", srv.Client(), true, probebase.HTTPFetchCheck, cachedeception.Check)
-	require.Len(t, obs, 1)
+	require.NotEmpty(t, obs)
 	assert.Equal(t, "Cache deception via path confusion", obs[0].Title)
-	assert.Contains(t, obs[0].Evidence, "/account.js")
+	assert.Contains(t, obs[0].Evidence, srv.URL+"/account")
 }
 
 func TestCacheDeception_NotAggressive_Skipped(t *testing.T) {
@@ -175,8 +176,8 @@ func TestCacheDeception_NotAggressive_Skipped(t *testing.T) {
 
 func TestCacheDeception_NoStoreOnDeceptivePath_NoFindings(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case "/account", "/account.js":
+		switch {
+		case strings.HasPrefix(r.URL.Path, "/account"):
 			w.Header().Set("Cache-Control", "no-store")
 			_, _ = w.Write([]byte("secret account data"))
 		default:

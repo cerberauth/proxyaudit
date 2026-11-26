@@ -28,3 +28,11 @@ func TestAllChecks_RegistersWithoutError(t *testing.T) {
 		assert.True(t, ok, "missing CheckDef for %s", c.ID)
 	}
 }
+
+func TestAllChecks_CVSSScoresMatchVectors(t *testing.T) {
+	_, defs := proxy.AllChecks()
+	require.NotEmpty(t, defs)
+	for id, def := range defs {
+		assert.NoError(t, def.ValidateCVSS(), id)
+	}
+}
